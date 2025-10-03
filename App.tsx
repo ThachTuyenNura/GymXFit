@@ -15,7 +15,7 @@ function App() {
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <Notification />
-      //<Search/>
+      {/* <Search/> */}
     </SafeAreaProvider>
   );
 }

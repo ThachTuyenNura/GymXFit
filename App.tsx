@@ -1,12 +1,15 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import Calendar from './src/components/pt/screens/Calendar'
-import Book from './src/components/pt/screens/Book'
+import SearchCalendarScreen from './src/components/pt/screens/SearchcalendarScreen'
+import BookScreen from './src/components/pt/screens/BookScreen'
+import CalenderScreen from './src/components/pt/screens/CalenderScreen'
+import CardMembershipScreen from './src/components/user/screens/CardMembershipScreen'
+
 
 const App = () => {
   return (
     <View style={styles.container}>
-      <Book />
+      <CardMembershipScreen />
     </View>
   )
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, StatusBar, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const Calendar = () => {
+const SearchCalendarScreen = () => {
   const [selectedDate, setSelectedDate] = useState(1);
   const [selectedTab, setSelectedTab] = useState('Danh sách lớp');
 
@@ -81,14 +81,12 @@ const Calendar = () => {
               ]}
               onPress={() => setSelectedDate(item.date)}
             >
-              {/* Thứ ở trên */}
               <Text style={[
                 styles.dayText,
                 selectedDate === item.date && styles.selectedDayText
               ]}>
                 {item.day}
               </Text>
-              {/* Ngày ở dưới */}
               <Text style={[
                 styles.dateText,
                 selectedDate === item.date && styles.selectedDateText
@@ -99,8 +97,6 @@ const Calendar = () => {
           ))}
         </ScrollView>
       </View>
-
-      {/* Content Area */}
       <View style={styles.contentContainer}>
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>Chưa có lịch nào được đặt</Text>
@@ -268,4 +264,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Calendar;
+export default SearchCalendarScreen;

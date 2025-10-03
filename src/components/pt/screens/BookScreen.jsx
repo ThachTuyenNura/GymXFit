@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const Book = () => {
+const BookScreen = () => {
   const [selectedTrainer, setSelectedTrainer] = useState('');
   const [selectedDate, setSelectedDate] = useState(24);
 
@@ -26,9 +26,8 @@ const Book = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#8B0000" barStyle="light-content" />
+      <StatusBar/>
       
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="white" />
@@ -51,7 +50,6 @@ const Book = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle2}>Câu lạc bộ</Text>
           <View style={styles.clubContainer}>
-            {/* Placeholder for club selection */}
           </View>
         </View>
 
@@ -89,7 +87,6 @@ const Book = () => {
           </ScrollView>
         </View>
 
-        {/* Book Button */}
         <TouchableOpacity style={styles.bookButton}>
           <Text style={styles.bookButtonText}>Đặt lịch</Text>
         </TouchableOpacity>
@@ -98,7 +95,7 @@ const Book = () => {
   );
 };
 
-export default Book;
+export default BookScreen;
 
 const styles = StyleSheet.create({
   container: {

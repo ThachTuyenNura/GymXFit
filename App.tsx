@@ -5,6 +5,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
+import Notification from './src/components/allscreens/Notification'
 import Search from './src/components/allscreens/Search'
 
 function App() {
@@ -13,7 +14,8 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <Search/>
+      <Notification />
+      //<Search/>
     </SafeAreaProvider>
   );
 }

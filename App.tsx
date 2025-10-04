@@ -8,6 +8,7 @@ import {
 import Notification from './src/components/allscreens/Notification'
 import Search from './src/components/allscreens/Search'
 import Home from './src/components/allscreens/Home'
+import Profile from './src/components/allscreens/Profile'
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -15,7 +16,7 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <Home />
+      <Profile />
       {/* <Notification /> */}
       {/* <Search/> */}
     </SafeAreaProvider>

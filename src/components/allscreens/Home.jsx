@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
         height: 55
     },
     contentLesmills: {
-        marginHorizontal: 7,
+        marginHorizontal: 5,
         marginVertical: 5
     },
     imageLesmills: {

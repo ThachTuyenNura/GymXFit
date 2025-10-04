@@ -11,14 +11,21 @@
     "test": "jest"
   },
   "dependencies": {
+<<<<<<< HEAD
+=======
     "@react-native-vector-icons/evil-icons": "^12.3.0",
     "@react-native-vector-icons/fontawesome6": "^12.2.0",
+>>>>>>> a3374182503d475c7813888ecadd8c6451f00758
     "@react-native/new-app-screen": "0.81.4",
     "nodemon": "^3.1.10",
     "react": "19.1.0",
     "react-native": "0.81.4",
+<<<<<<< HEAD
+    "react-native-safe-area-context": "^5.5.2"
+=======
     "react-native-safe-area-context": "^5.5.2",
     "react-native-vector-icons": "^10.3.0"
+>>>>>>> a3374182503d475c7813888ecadd8c6451f00758
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

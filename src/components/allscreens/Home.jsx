@@ -258,7 +258,7 @@ const home = (props) => {
         const { id, title, image, date } = val.item;
         return (
             <View style={styles.itemLesmills}>
-                <View style={styles.imageLesmillContainer}>
+                <View>
                     <Image style={styles.imageLesmills} source={image} />
                 </View>
                 <View style={styles.contentLesmills}>
@@ -271,7 +271,7 @@ const home = (props) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* 💥 GIẢI PHÁP TỐI ƯU: Thay thế ScrollView bằng FlatList */}
+            {/* GIẢI PHÁP TỐI ƯU: Thay thế ScrollView bằng FlatList */}
             <FlatList
                 data={lesmillsdata} // Dữ liệu chính (Lesmills)
                 renderItem={renderLesmillsData}
@@ -283,18 +283,32 @@ const home = (props) => {
                     <HomeHeader data={data} renderData={renderData} />
                 }
                 ListFooterComponent={
-                    <View style={styles.tutorialContainer}>
-                        <FlatList
-                            data={data}
-                            renderItem={renderData}
-                            keyExtractor={(item) => item.id}
-                            horizontal={true}
-                            showsHorizontalScrollIndicator={false}
-                            showsVerticalScrollIndicator={false}
-                        />
+                    <View>
+                        <View style={styles.recommendCotainer}>
+                            <View>
+                                <Text style={styles.textRecommend}>Tin tức GymXFit</Text>
+                            </View>
+                            <TouchableOpacity style={styles.allcontainer}>
+                                <View>
+                                    <Text style={styles.textAll}>Tất cả</Text>
+                                </View>
+                                <View>
+                                    <Image source={require('../../media/pictures/arrowright.png')} />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.tutorialContainer}>
+                            <FlatList
+                                data={data}
+                                renderItem={renderData}
+                                keyExtractor={(item) => item.id}
+                                horizontal={true}
+                                showsHorizontalScrollIndicator={false}
+                                showsVerticalScrollIndicator={false}
+                            />
+                        </View>
                     </View>
                 }
-                columnWrapperStyle={styles.columnWrapperStyle}
             />
         </SafeAreaView>
         // <SafeAreaView style={styles.container}>
@@ -498,7 +512,8 @@ const styles = StyleSheet.create({
         height: 55
     },
     contentLesmills: {
-        marginHorizontal: 5
+        marginHorizontal: 7,
+        marginVertical: 5
     },
     imageLesmills: {
         width: '100%',
@@ -509,14 +524,13 @@ const styles = StyleSheet.create({
     itemLesmills: {
         flex: 1,
         height: 200,
-        justifyContent: 'space-between',
         margin: 7,
         borderRadius: 14,
         backgroundColor: '#fff',
         elevation: 2
     },
     lesmillsContainer: {
-        marginVertical: 13
+        marginVertical: 0
     },
     dateContent: {
         fontSize: 11
@@ -543,7 +557,7 @@ const styles = StyleSheet.create({
         borderRadius: 16
     },
     tutorialContainer: {
-        marginVertical: 20
+        marginVertical: 0
     },
     textMinute: {
         fontSize: 12,
@@ -594,8 +608,7 @@ const styles = StyleSheet.create({
     },
     videoContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginVertical: 15
+        justifyContent: 'space-between'
     },
     textAll: {
         fontSize: 15,
@@ -613,7 +626,8 @@ const styles = StyleSheet.create({
     recommendCotainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        marginVertical: 20
     },
     bgImage: {
         backgroundColor: '#9eeaaeff',
@@ -641,8 +655,7 @@ const styles = StyleSheet.create({
         gap: 10
     },
     tabBarContainer: {
-        marginTop: 24,
-        marginBottom: 16
+        marginTop: 24
     },
     headerText: {
         fontSize: 18,

@@ -1,16 +1,16 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import SearchCalendarScreen from './src/components/pt/screens/SearchcalendarScreen'
-import BookScreen from './src/components/pt/screens/BookScreen'
-import CalenderScreen from './src/components/pt/screens/CalenderScreen'
-import CardMembershipScreen from './src/components/user/screens/CardMembershipScreen'
+import { NavigationContainer } from '@react-navigation/native'
+import AppNavigation from './src/components/navigations/AppNavigation';
 
 
 const App = () => {
   return (
-    <View style={styles.container}>
-      <CardMembershipScreen />
-    </View>
+    <NavigationContainer>
+      <View style={styles.container}>
+        <AppNavigation />
+      </View>
+    </NavigationContainer>
   )
 }
 

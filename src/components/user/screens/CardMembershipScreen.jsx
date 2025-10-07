@@ -22,7 +22,7 @@ const CardMembershipScreen = () => {
       type: 'CLASSIC MEMBERSHIP',
       image: require('../../../media/pictures/cardmemberclassic.png'),
       description: 'TẬP LUYỆN TẠI CLB BAN YÊU THÍCH NHẤT',
-      color: '#30C451'
+      color: '#c41e3a'
     },
     {
       id: 2,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#30C451',
+    backgroundColor: '#c41e3a',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   heroSection: {
-    backgroundColor: '#30C451',
+    backgroundColor: '#c41e3a',
     height: 100,
     justifyContent: 'center',
     alignItems: 'center',

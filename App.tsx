@@ -9,6 +9,7 @@ import Notification from './src/components/allscreens/Notification'
 import Search from './src/components/allscreens/Search'
 import Home from './src/components/allscreens/Home'
 import Profile from './src/components/allscreens/Profile'
+import News from './src/components/allscreens/News'
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -16,9 +17,7 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <Profile />
-      {/* <Notification /> */}
-      {/* <Search/> */}
+      <News />
     </SafeAreaProvider>
   );
 }

@@ -3,8 +3,7 @@ import {
     View, Text, Image, StatusBar,
     StyleSheet, useColorScheme,
     TouchableOpacity,
-    FlatList,
-    ScrollView
+    FlatList
 } from 'react-native';
 
 const News = (props) => {

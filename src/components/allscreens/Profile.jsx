@@ -1,52 +1,53 @@
 import React, { useState, useEffect } from 'react'
 import {
     Text, View, Image,
-    StyleSheet
+    StyleSheet,
+    TouchableOpacity
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const Profile = (props) => {
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <View style={styles.infoContainer}>
                 <View>
-                    <Text style={styles.titltInfo}>Hồ sơ</Text>
+                    <Text style={styles.titltInfo}>Tài khoản</Text>
                 </View>
                 <View style={styles.avtContainer}>
                     <View>
                         <Image style={styles.imageAvt} source={require('../../media/pictures/avt.png')} />
                     </View>
                     <View>
-                        <Text style={styles.titltInfo}>Madison Smith</Text>
+                        <Text style={styles.titltInfo}>Thạch Tuyển</Text>
                     </View>
                     <View>
                         <Text style={styles.mailAvt}>madisons@example.com</Text>
                     </View>
                     <View>
-                        <Text style={styles.bold}>Birthday: <Text style={styles.birthdayAvt}>April 1st</Text></Text>
+                        <Text style={styles.bold}>Ngày sinh: <Text style={styles.birthdayAvt}>01/01/2000</Text></Text>
                     </View>
                 </View>
 
                 <View style={styles.infoBodyContainer}>
                     <View>
                         <Text style={styles.textInfoBody}>75 <Text>Kg</Text></Text>
-                        <Text style={styles.textInfoBody}>Weight</Text>
+                        <Text style={styles.textInfoBody}>Cân nặng</Text>
                     </View>
                     <View style={styles.duongke}></View>
                     <View>
                         <Text style={styles.textInfoBody}>28</Text>
-                        <Text style={styles.textInfoBody}>Years old</Text>
+                        <Text style={styles.textInfoBody}>Tuổi</Text>
                     </View>
                     <View style={styles.duongke}></View>
                     <View>
                         <Text style={styles.textInfoBody}>165 <Text>CM</Text></Text>
-                        <Text style={styles.textInfoBody}>Height</Text>
+                        <Text style={styles.textInfoBody}>Chiều cao</Text>
                     </View>
                 </View>
             </View>
 
             <View style={styles.optionContainer}>
-                <View style={styles.itemOption}>
+                <TouchableOpacity style={styles.itemOption}>
                     <View style={styles.imageItemContainer}>
                         <Image source={require('../../media/pictures/profile.png')} />
                     </View>
@@ -56,8 +57,8 @@ const Profile = (props) => {
                     <View style={styles.iconItemOption}>
                         <Image style={styles.tintblack} source={require('../../media/pictures/arrowright.png')} />
                     </View>
-                </View>
-                <View style={styles.itemOption}>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.itemOption}>
                     <View style={styles.imageItemContainer}>
                         <Image style={{ tintColor: '#fff' }} source={require('../../media/pictures/tutorial.png')} />
                     </View>
@@ -67,8 +68,8 @@ const Profile = (props) => {
                     <View style={styles.iconItemOption}>
                         <Image style={styles.tintblack} source={require('../../media/pictures/arrowright.png')} />
                     </View>
-                </View>
-                <View style={styles.itemOption}>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.itemOption}>
                     <View style={styles.imageItemContainer}>
                         <Image source={require('../../media/pictures/support.png')} />
                     </View>
@@ -78,8 +79,8 @@ const Profile = (props) => {
                     <View style={styles.iconItemOption}>
                         <Image style={styles.tintblack} source={require('../../media/pictures/arrowright.png')} />
                     </View>
-                </View>
-                <View style={styles.itemOption}>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.itemOption}>
                     <View style={styles.imageItemContainer}>
                         <Image style={{ tintColor: '#fff' }} source={require('../../media/pictures/contract.png')} />
                     </View>
@@ -89,8 +90,8 @@ const Profile = (props) => {
                     <View style={styles.iconItemOption}>
                         <Image style={styles.tintblack} source={require('../../media/pictures/arrowright.png')} />
                     </View>
-                </View>
-                <View style={styles.itemOption}>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.itemOption}>
                     <View style={styles.imageItemContainer}>
                         <Image style={{ tintColor: '#fff' }} source={require('../../media/pictures/password.png')} />
                     </View>
@@ -100,8 +101,8 @@ const Profile = (props) => {
                     <View style={styles.iconItemOption}>
                         <Image style={styles.tintblack} source={require('../../media/pictures/arrowright.png')} />
                     </View>
-                </View>
-                <View style={styles.itemOption}>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.itemOption}>
                     <View style={styles.imageItemContainer}>
                         <Image source={require('../../media/pictures/logout.png')} />
                     </View>
@@ -111,9 +112,9 @@ const Profile = (props) => {
                     <View style={styles.iconItemOption}>
                         <Image style={styles.tintblack} source={require('../../media/pictures/arrowright.png')} />
                     </View>
-                </View>
+                </TouchableOpacity>
             </View>
-        </SafeAreaView>
+        </View>
     )
 }
 

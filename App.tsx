@@ -1,25 +1,21 @@
+import 'react-native-gesture-handler';
 import React from 'react';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { StatusBar, StyleSheet, useColorScheme } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import Notification from './src/components/allscreens/Notification'
-import Search from './src/components/allscreens/Search'
-import Home from './src/components/allscreens/Home'
-import Profile from './src/components/allscreens/Profile'
-import News from './src/components/allscreens/News'
-import UpdateProfile from './src/components/allscreens/UpdateProfile'
+import { UserProvider } from './src/components/user/UserContext';
+import AppNavigation from './src/components/navigations/AppNavigation';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
-    <SafeAreaProvider>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <UpdateProfile />
-    </SafeAreaProvider>
+      <UserProvider>
+        <AppNavigation />
+      </UserProvider>
+    </SafeAreaView>
   );
 }
 

@@ -8,7 +8,7 @@ import {
   Image,
 } from 'react-native';
 
-const VerifyScreen = () => {
+const VerifyScreen = (props) => {
    const { navigation } = props;
   const [code, setCode] = useState(['', '', '', '']); // 4 số mã xác thực
 

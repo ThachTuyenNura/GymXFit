@@ -27,7 +27,7 @@ const OnlineSupport = ({ navigation }) => {
           </TouchableOpacity>
 
           <Image
-            source={require('../../../media/pictures/Customerservice.png')}
+            source={require('../../../media/pictures/customerserviceicon.png')}
             style={styles.avatar}
             resizeMode="contain"
           />

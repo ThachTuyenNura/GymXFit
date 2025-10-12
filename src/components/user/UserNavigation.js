@@ -8,7 +8,8 @@ const Stack = createNativeStackNavigator();
 import SurveyScreen from '../user/screens/SurveyScreen';
 import RegisterScreen from '../user/screens/RegisterScreen';
 import LoginScreen from '../user/screens/LoginScreen';
-import VerifyScreen from '../user/screens/VerifyScreen';
+import VerifyRegisterScreen from './screens/VerifyRegisterScreen';
+import VerifyLoginScreen from './screens/VerifyLoginScreen';
 
 const UserNavigation = () => {
   return (
@@ -22,7 +23,8 @@ const UserNavigation = () => {
       {/* <Stack.Screen name="OnBoarding2" component={OnBoarding2} /> */}
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
       <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-      <Stack.Screen name="VerifyScreen" component={VerifyScreen} />
+      <Stack.Screen name="VerifyRegisterScreen" component={VerifyRegisterScreen} />
+      <Stack.Screen name="VerifyLoginScreen" component={VerifyLoginScreen} />
       <Stack.Screen name="SurveyScreen" component={SurveyScreen} />
     </Stack.Navigator>
   );

@@ -33,7 +33,7 @@ const RegisterScreen = (props) => {
 
       {/* Nút đăng ký */}
       <TouchableOpacity
-        onPress={() => navigation.navigate('VerifyScreen')}
+        onPress={() => navigation.navigate('VerifyRegisterScreen')}
         style={styles.button}
       >
         <Text style={styles.buttonText}>Đăng ký</Text>

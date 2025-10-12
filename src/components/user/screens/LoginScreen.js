@@ -35,7 +35,7 @@ const LoginScreen = (props) => {
       />
 
       {/* Nút đăng nhập */}
-      <TouchableOpacity onPress={()=>navigation.navigate('RegisterScreen')} style={styles.button}>
+      <TouchableOpacity onPress={()=>navigation.navigate('VerifyLoginScreen')} style={styles.button}>
         <Text style={styles.buttonText}>Đăng nhập</Text>
       </TouchableOpacity>
 

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 
 const VerifyScreen = (props) => {
-   const { navigation } = props;
+  const { navigation } = props;
   const [code, setCode] = useState(['', '', '', '']); // 4 số mã xác thực
 
   const handleChange = (text, index) => {
@@ -19,7 +19,7 @@ const VerifyScreen = (props) => {
   };
 
   const handleContinue = () => {
-    console.log('Mã đã nhập:', code.join(''));
+    navigation.navigate('LoginScreen')
   };
 
   return (
@@ -82,7 +82,8 @@ const VerifyScreen = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 35,
+    paddingVertical: 20,
     backgroundColor: 'white',
   },
   header: {
@@ -91,12 +92,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     marginBottom: 10,
-  },
-  backButton: {
-    padding: 10,
-  },
-  exitButton: {
-    padding: 10,
   },
   icon: {
     width: 24,

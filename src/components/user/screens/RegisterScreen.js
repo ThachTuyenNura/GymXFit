@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,37 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
 } from 'react-native';
 
-const RegisterScreen = (props) => {
- const { navigation } = props;
+const RegisterScreen = props => {
+  const { navigation } = props;
+  const [mobileNumber, setMobileNumber] = useState('');
+
+  const handleRegister = () => {
+    const trimmedNumber = mobileNumber.trim();
+
+    // 🟥 Kiểm tra rỗng
+    if (trimmedNumber === '') {
+      Alert.alert('Lỗi', 'Vui lòng nhập số điện thoại.');
+      return;
+    }
+
+    // 🟧 Kiểm tra ít nhất 9 chữ số
+    if (trimmedNumber.length < 9) {
+      Alert.alert('Lỗi', 'Số điện thoại phải có ít nhất 9 chữ số.');
+      return;
+    }
+
+    // 🟢 Hợp lệ → sang VerifyScreen
+    navigation.navigate('VerifyScreen');
+  };
+
   return (
     <View style={styles.container}>
       {/* Logo */}
       <Image
-        source={require('../../../media/pictures/logo.png')} // ✅ sửa đường dẫn
+        source={require('../../../media/pictures/logo.png')}
         style={styles.logo}
         resizeMode="contain"
       />
@@ -27,21 +49,27 @@ const RegisterScreen = (props) => {
         <TextInput
           style={styles.input}
           placeholder="Số điện thoại"
+          placeholderTextColor="#888"
           keyboardType="phone-pad"
+          value={mobileNumber}
+          onChangeText={setMobileNumber}
         />
       </View>
 
       {/* Nút đăng ký */}
-      <TouchableOpacity
-        onPress={() => navigation.navigate('VerifyScreen')}
-        style={styles.button}
-      >
+      <TouchableOpacity onPress={handleRegister} style={styles.button}>
         <Text style={styles.buttonText}>Đăng ký</Text>
       </TouchableOpacity>
 
       {/* Liên kết đăng nhập */}
       <Text style={styles.signInText}>
-        Đã có tài khoản? <Text style={styles.signInLink}>Đăng nhập</Text>
+        Đã có tài khoản?{' '}
+        <Text
+          style={styles.signInLink}
+          onPress={() => navigation.navigate('LoginScreen')}
+        >
+          Đăng nhập
+        </Text>
       </Text>
     </View>
   );
@@ -101,6 +129,7 @@ const styles = StyleSheet.create({
   signInLink: {
     color: '#4CAF50',
     fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
 });
 

@@ -6,25 +6,43 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
 } from 'react-native';
 
-const LoginScreen = (props) => {
+const LoginScreen = props => {
   const { navigation } = props;
   const [mobileNumber, setMobileNumber] = useState('');
+
+  const handleLogin = () => {
+    const trimmedNumber = mobileNumber.trim();
+
+    // 🟥 Kiểm tra không để trống
+    if (trimmedNumber === '') {
+      Alert.alert('Lỗi', 'Vui lòng nhập số điện thoại của bạn.');
+      return;
+    }
+
+    // 🟧 Kiểm tra có ít nhất 9 chữ số
+    if (trimmedNumber.length < 9) {
+      Alert.alert('Lỗi', 'Số điện thoại phải có ít nhất 9 chữ số.');
+      return;
+    }
+
+    // 🟢 Nếu hợp lệ, chuyển sang WorkoutScreen
+    navigation.navigate('WorkoutScreen');
+  };
 
   return (
     <View style={styles.container}>
       {/* Logo */}
       <Image
-        source={require('../../../media/pictures/logo.png')} // dùng lại logo cũ
+        source={require('../../../media/pictures/logo.png')}
         style={styles.logo}
         resizeMode="contain"
       />
 
-      {/* Tiêu đề */}
       <Text style={styles.loginText}>Đăng nhập</Text>
 
-      {/* Ô nhập số điện thoại */}
       <TextInput
         style={styles.input}
         placeholder="Nhập số điện thoại"
@@ -34,15 +52,18 @@ const LoginScreen = (props) => {
         onChangeText={setMobileNumber}
       />
 
-      {/* Nút đăng nhập */}
-      <TouchableOpacity onPress={()=>navigation.navigate('RegisterScreen')} style={styles.button}>
+      <TouchableOpacity onPress={handleLogin} style={styles.button}>
         <Text style={styles.buttonText}>Đăng nhập</Text>
       </TouchableOpacity>
 
-      {/* Liên kết sang đăng ký */}
       <Text style={styles.registerText}>
         Bạn chưa có tài khoản?{' '}
-        <Text style={styles.registerLink}>Đăng ký ngay</Text>
+        <Text
+          style={styles.registerLink}
+          onPress={() => navigation.navigate('RegisterScreen')}
+        >
+          Đăng ký ngay
+        </Text>
       </Text>
     </View>
   );
@@ -103,6 +124,7 @@ const styles = StyleSheet.create({
   registerLink: {
     color: '#20B24A',
     fontWeight: '700',
+    textDecorationLine: 'underline',
   },
 });
 

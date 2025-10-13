@@ -1,5 +1,5 @@
 // screens/WorkoutVideo.js
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,63 +7,113 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  TextInput,
   Platform,
 } from 'react-native';
 
-export default function WorkoutVideo() {
+const WorkoutVideo = ({ navigation }) => {
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchText, setSearchText] = useState('');
+
+  const toggleFavorite = () => setIsFavorite(!isFavorite);
+
+  const infoText =
+    'Tăng cường sức mạnh cơ bụng và cải thiện độ linh hoạt của phần thân trên. Giữ tư thế ổn định khi gập người và kiểm soát nhịp thở đều.';
+
   return (
     <View style={styles.container}>
-      {/* Thanh tiêu đề */}
+      {/* ---------- HEADER ---------- */}
       <View style={styles.headerWrap}>
         <View style={styles.header}>
-          <TouchableOpacity activeOpacity={0.8} style={styles.backWrap}>
+          {/* Nút back */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.backWrap}
+            onPress={() => navigation.goBack()}
+          >
             <Image
               source={require('../../../media/pictures/back.png')}
               style={styles.backIcon}
             />
           </TouchableOpacity>
 
+          {/* Tiêu đề */}
           <Text style={styles.headerText}>Nâng cao</Text>
 
+          {/* Nhóm icon bên phải */}
           <View style={styles.headerRight}>
-            <Image
-              source={require('../../../media/pictures/Search_icon.png')}
-              style={styles.icon}
-            />
-            <Image
-              source={require('../../../media/pictures/Notifications_icon.png')}
-              style={styles.icon}
-            />
-            <Image
-              source={require('../../../media/pictures/User_Icon.png')}
-              style={styles.icon}
-            />
+            {/* Nút tìm kiếm (toggle hiển thị ô tìm kiếm) */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowSearch(!showSearch)}
+            >
+              <Image
+                source={require('../../../media/pictures/Search_icon.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+
+            {/* Nút thông báo */}
+            <TouchableOpacity activeOpacity={0.8}>
+              <Image
+                source={require('../../../media/pictures/Notifications_icon.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+
+            {/* Nút user */}
+            <TouchableOpacity activeOpacity={0.8}>
+              <Image
+                source={require('../../../media/pictures/User_Icon.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* Ô tìm kiếm (chỉ hiển thị khi nhấn icon) */}
+        {showSearch && (
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Tìm kiếm trong mô tả bài tập..."
+            placeholderTextColor="#888"
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+        )}
       </View>
 
+      {/* ---------- NỘI DUNG CHÍNH ---------- */}
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-        {/* Phần video hoặc ảnh chính */}
+        {/* Ảnh chính + Play + Sao */}
         <View style={styles.featuredWrapper}>
           <View style={styles.featuredCard}>
-            {/* Ảnh workout */}
             <Image
               source={require('../../../media/pictures/workout1.jpg')}
               style={styles.workoutImage}
             />
 
-            {/* Nút Play giữa màn hình */}
-            <TouchableOpacity activeOpacity={0.8} style={styles.playButton}>
+            {/* Nút Play (chỉ nhấn được, không hành động) */}
+            <TouchableOpacity activeOpacity={0.6} style={styles.playButton}>
               <Image
                 source={require('../../../media/pictures/Play_Button.png')}
                 style={styles.playIcon}
               />
             </TouchableOpacity>
 
-            {/* Sao vàng yêu thích */}
-            <TouchableOpacity activeOpacity={0.8} style={styles.favoriteBtn}>
+            {/* Nút Sao yêu thích */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.favoriteBtn}
+              onPress={toggleFavorite}
+            >
               <Image
-                source={require('../../../media/pictures/favorites_yellow_star.png')}
+                source={
+                  isFavorite
+                    ? require('../../../media/pictures/yellowstar.png')
+                    : require('../../../media/pictures/favorites_white_star.png')
+                }
                 style={styles.favoriteIcon}
               />
             </TouchableOpacity>
@@ -74,13 +124,9 @@ export default function WorkoutVideo() {
         <View style={styles.infoSection}>
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>Gập bụng trên ghế nghiêng</Text>
-            <Text style={styles.infoDesc}>
-              Tăng cường sức mạnh cơ bụng và cải thiện độ linh hoạt của phần
-              thân trên. Giữ tư thế ổn định khi gập người và kiểm soát nhịp thở
-              đều.
-            </Text>
+            <Text style={styles.infoDesc}>{infoText}</Text>
 
-            {/* 3 thông tin nhỏ phía dưới */}
+            {/* 3 dòng thông tin nhỏ */}
             <View style={styles.infoRowWrapper}>
               <View style={styles.infoItem}>
                 <Image
@@ -111,28 +157,42 @@ export default function WorkoutVideo() {
       </ScrollView>
     </View>
   );
-}
+};
 
-// ----------------- STYLES -----------------
+// ---------------- STYLES ----------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'ios' ? 44 : 14,
+    paddingTop: Platform.OS === 'ios' ? 36 : 10,
   },
 
   // Header
-  headerWrap: { paddingHorizontal: 20, marginBottom: 10 },
+  headerWrap: { paddingHorizontal: 18, marginBottom: 10 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: 8,
   },
   backWrap: { width: 30, alignItems: 'flex-start' },
-  backIcon: { width: 20, height: 20, resizeMode: 'contain' },
+  backIcon: { width: 22, height: 22, resizeMode: 'contain' },
   headerText: { fontSize: 22, fontWeight: '700', color: '#111' },
   headerRight: { flexDirection: 'row', alignItems: 'center' },
-  icon: { width: 24, height: 24, marginLeft: 14, resizeMode: 'contain' },
+  icon: { width: 26, height: 26, marginLeft: 14, resizeMode: 'contain' },
+
+  // Ô tìm kiếm
+  searchInput: {
+    marginTop: 10,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    fontSize: 16,
+    color: '#000',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
 
   // Ảnh chính
   featuredWrapper: {
@@ -142,18 +202,12 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   featuredCard: {
-    marginHorizontal: 20,
+    marginHorizontal: 18,
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
   },
-  workoutImage: {
-    width: '100%',
-    height: 500, // phù hợp với màn hình 1080x2400
-    resizeMode: 'cover',
-  },
-
-  // Nút Play
+  workoutImage: { width: '100%', height: 500, resizeMode: 'cover' },
   playButton: {
     position: 'absolute',
     alignSelf: 'center',
@@ -161,13 +215,11 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   playIcon: { width: 110, height: 110, resizeMode: 'contain' },
-
-  // Sao yêu thích
   favoriteBtn: { position: 'absolute', top: 16, right: 16, zIndex: 6 },
   favoriteIcon: { width: 32, height: 32, resizeMode: 'contain' },
 
-  // Thông tin mô tả
-  infoSection: { paddingHorizontal: 20, marginTop: 14 },
+  // Thông tin bài tập
+  infoSection: { paddingHorizontal: 18, marginTop: 14 },
   infoCard: {
     backgroundColor: '#EEF94E',
     borderRadius: 45,
@@ -203,3 +255,5 @@ const styles = StyleSheet.create({
   smallIcon: { width: 18, height: 18, resizeMode: 'contain', marginRight: 6 },
   infoItemText: { fontSize: 14, color: '#333', fontWeight: '500' },
 });
+
+export default WorkoutVideo;

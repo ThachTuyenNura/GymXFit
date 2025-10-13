@@ -9,10 +9,10 @@ import {
   Platform,
 } from 'react-native';
 
-const WorkoutScreen2 = () => {
+const WorkoutScreen2 = ({ navigation }) => {
   const roundData = [
     {
-      round: 'Hiệp 1', // ✅ Round 1
+      round: 'Hiệp 1',
       exercises: [
         { id: '1', title: 'Đẩy ngực với tạ đòn', time: '00:30', reps: '3x' },
         { id: '2', title: 'Hít xà tam đầu', time: '00:15', reps: '2x' },
@@ -21,12 +21,12 @@ const WorkoutScreen2 = () => {
           title: 'Gập bụng trên ghế nghiêng',
           time: '00:30',
           reps: '3x',
-          active: true, // riêng cái này đổi sang Play_Button_2.png
+          active: true, // nút play đổi sang Play_Button_2.png
         },
       ],
     },
     {
-      round: 'Hiệp 2', // ✅ Round 2
+      round: 'Hiệp 2',
       exercises: [
         { id: '4', title: 'Deadlift kiểu Romania', time: '00:10', reps: '2x' },
         {
@@ -40,7 +40,11 @@ const WorkoutScreen2 = () => {
   ];
 
   const renderExercise = item => (
-    <View key={item.id} style={styles.exerciseCard}>
+    <TouchableOpacity
+      key={item.id}
+      style={styles.exerciseCard}
+      onPress={() => navigation.navigate('WorkoutVideo')}
+    >
       {/* nút phát (play button) */}
       <View style={styles.playButtonWrap}>
         <Image
@@ -67,15 +71,15 @@ const WorkoutScreen2 = () => {
 
       {/* số lần lặp */}
       <Text style={styles.repsText}>Lặp lại {item.reps}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Thanh tiêu đề (Header) */}
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.leftHeader}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <Image
               source={require('../../../media/pictures/back.png')}
               style={styles.backIcon}
@@ -105,7 +109,7 @@ const WorkoutScreen2 = () => {
         </View>
       </View>
 
-      {/* Khối nổi bật (Featured block) */}
+      {/* Banner */}
       <View style={styles.featuredWrapper}>
         <View style={styles.featuredCard}>
           <Image
@@ -152,7 +156,7 @@ const WorkoutScreen2 = () => {
         </View>
       </View>
 
-      {/* Danh sách các hiệp (Rounds) */}
+      {/* Danh sách các hiệp */}
       {roundData.map(round => (
         <View
           key={round.round}
@@ -177,22 +181,51 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 18,
-    paddingVertical: 8,
+    paddingVertical: 10,
+    borderBottomWidth: 0.3,
+    borderBottomColor: '#ccc',
   },
-  leftHeader: { flexDirection: 'row', alignItems: 'center' },
-  rightHeader: { flexDirection: 'row', alignItems: 'center' },
-  backIcon: { width: 10, height: 10, marginRight: 8 },
-  title: { fontSize: 22, fontWeight: '700', color: '#111' },
-  headerIcon: { width: 22, height: 22, marginLeft: 12 },
+  leftHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rightHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backIcon: {
+    width: 26,
+    height: 26,
+    marginRight: 10,
+    resizeMode: 'contain',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111',
+  },
+  headerIcon: {
+    width: 22,
+    height: 22,
+    marginLeft: 12,
+    resizeMode: 'contain',
+  },
 
   featuredWrapper: {
     backgroundColor: '#20B24A',
-    borderRadius: 0,
     padding: 12,
     marginBottom: 18,
   },
-  featuredCard: { borderRadius: 10, overflow: 'hidden', position: 'relative' },
-  featuredImage: { width: '100%', height: 180, resizeMode: 'cover' },
+  featuredCard: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  featuredImage: {
+    width: '100%',
+    height: 180,
+    resizeMode: 'cover',
+  },
   badgeWrap: {
     position: 'absolute',
     top: 12,
@@ -202,8 +235,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 14,
   },
-  badgeText: { fontSize: 12, fontWeight: '700', color: '#111' },
-
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#111',
+  },
   featuredOverlay: {
     position: 'absolute',
     left: 12,
@@ -219,7 +255,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  detailRow: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+  },
   detailIcon: {
     width: 16,
     height: 16,
@@ -244,7 +284,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  featuredFavoriteIcon: { width: 18, height: 18, tintColor: '#fff' },
+  featuredFavoriteIcon: {
+    width: 18,
+    height: 18,
+    tintColor: '#fff',
+  },
 
   roundTitle: {
     fontSize: 16,
@@ -271,17 +315,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  playIcon: { width: 40, height: 40, resizeMode: 'contain' },
-  exerciseInfo: { flex: 1 },
+  playIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+  },
+  exerciseInfo: {
+    flex: 1,
+  },
   exerciseTitle: {
     fontSize: 14,
     fontWeight: '700',
     color: '#111',
     marginBottom: 4,
   },
-  exerciseDetails: { flexDirection: 'row', alignItems: 'center' },
-  exerciseTime: { marginLeft: 6, fontSize: 12, color: '#333' },
-  repsText: { fontSize: 12, fontWeight: '700', color: '#111' },
+  exerciseDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  exerciseTime: {
+    marginLeft: 6,
+    fontSize: 12,
+    color: '#333',
+  },
+  repsText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#111',
+  },
 });
 
 export default WorkoutScreen2;

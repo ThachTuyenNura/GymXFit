@@ -9,12 +9,13 @@ import {
   Image,
   ScrollView,
   Platform,
+  Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const SurveyScreen = () => {
+const SurveyScreen = ({ navigation }) => {
   const [ten, setTen] = useState('');
-  const [ngaySinh, setNgaySinh] = useState(new Date());
+  const [ngaySinh, setNgaySinh] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
   const [gioiTinh, setGioiTinh] = useState('');
   const [email, setEmail] = useState('');
@@ -22,9 +23,8 @@ const SurveyScreen = () => {
   const [canNang, setCanNang] = useState('');
 
   const onChangeDate = (event, selectedDate) => {
-    const currentDate = selectedDate || ngaySinh;
-    setShowPicker(Platform.OS === 'ios');
-    setNgaySinh(currentDate);
+    setShowPicker(false);
+    if (selectedDate) setNgaySinh(selectedDate);
   };
 
   const formatDate = date => {
@@ -36,14 +36,61 @@ const SurveyScreen = () => {
   };
 
   const handleSubmit = () => {
-    console.log({
-      ten,
-      ngaySinh: formatDate(ngaySinh),
-      gioiTinh,
-      email,
-      chieuCao,
-      canNang,
-    });
+    // 🔍 Kiểm tra tất cả trường bắt buộc
+    if (!ten.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập họ và tên.');
+      return;
+    }
+
+    if (!ngaySinh) {
+      Alert.alert('Lỗi', 'Vui lòng chọn ngày sinh.');
+      return;
+    }
+
+    if (!gioiTinh) {
+      Alert.alert('Lỗi', 'Vui lòng chọn giới tính.');
+      return;
+    }
+
+    if (!email.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập email.');
+      return;
+    }
+
+    // Kiểm tra định dạng email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Lỗi', 'Email không hợp lệ.');
+      return;
+    }
+
+    if (!chieuCao.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập chiều cao.');
+      return;
+    }
+
+    if (isNaN(chieuCao) || Number(chieuCao) <= 0) {
+      Alert.alert('Lỗi', 'Chiều cao phải là số hợp lệ (lớn hơn 0).');
+      return;
+    }
+
+    if (!canNang.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập cân nặng.');
+      return;
+    }
+
+    if (isNaN(canNang) || Number(canNang) <= 0) {
+      Alert.alert('Lỗi', 'Cân nặng phải là số hợp lệ (lớn hơn 0).');
+      return;
+    }
+
+    // ✅ Nếu hợp lệ → sang WorkoutScreen
+    Alert.alert('Thành công', 'Thông tin của bạn đã được xác nhận!', [
+      {
+        text: 'OK',
+        onPress: () => navigation.navigate('WorkoutScreen'),
+      },
+    ]);
   };
 
   return (
@@ -83,7 +130,7 @@ const SurveyScreen = () => {
         </TouchableOpacity>
         {showPicker && (
           <DateTimePicker
-            value={ngaySinh}
+            value={ngaySinh || new Date()}
             mode="date"
             display="spinner"
             onChange={onChangeDate}
@@ -127,7 +174,7 @@ const SurveyScreen = () => {
         {/* Email */}
         <TextInput
           style={styles.input}
-          placeholder="Email (nếu có)"
+          placeholder="Email"
           placeholderTextColor="#888"
           keyboardType="email-address"
           value={email}
@@ -163,6 +210,7 @@ const SurveyScreen = () => {
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,15 @@ import {
   StyleSheet,
   FlatList,
   Image,
+  TextInput,
   Platform,
 } from 'react-native';
 
-const WorkoutScreen = () => {
+const WorkoutScreen = ({ navigation }) => {
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [favorites, setFavorites] = useState({});
+
   const workoutData = [
     {
       id: '1',
@@ -37,9 +42,23 @@ const WorkoutScreen = () => {
     },
   ];
 
+  const filteredData = workoutData.filter(item =>
+    item.title.toLowerCase().includes(searchText.toLowerCase()),
+  );
+
+  const toggleFavorite = id => {
+    setFavorites(prev => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
   const renderWorkoutItem = ({ item }) => (
-    <View style={styles.workoutCard}>
-      {/* Bên trái: tiêu đề + thông tin chi tiết */}
+    <TouchableOpacity
+      style={styles.workoutCard}
+      activeOpacity={0.8}
+      onPress={() => navigation.navigate('WorkoutScreen2', { workout: item })}
+    >
       <View style={styles.workoutInfo}>
         <Text style={styles.workoutTitle}>{item.title}</Text>
 
@@ -51,7 +70,6 @@ const WorkoutScreen = () => {
             />
             <Text style={styles.detailText}>{item.duration}</Text>
           </View>
-
           <View style={styles.detailItem}>
             <Image
               source={require('../../../media/pictures/Calories.png')}
@@ -59,7 +77,6 @@ const WorkoutScreen = () => {
             />
             <Text style={styles.detailText}>{item.calories}</Text>
           </View>
-
           <View style={styles.detailItem}>
             <Image
               source={require('../../../media/pictures/Workout_icon.png')}
@@ -70,26 +87,32 @@ const WorkoutScreen = () => {
         </View>
       </View>
 
-      {/* Bên phải: ảnh thu nhỏ + yêu thích */}
       <View style={styles.thumbSection}>
         <Image source={item.image} style={styles.thumbImage} />
-        <TouchableOpacity style={styles.itemFavorite}>
+        <TouchableOpacity
+          style={styles.itemFavorite}
+          onPress={() => toggleFavorite(item.id)}
+        >
           <Image
-            source={require('../../../media/pictures/favorites_white_star.png')}
+            source={
+              favorites[item.id]
+                ? require('../../../media/pictures/yellowstar.png')
+                : require('../../../media/pictures/favorites_white_star.png')
+            }
             style={styles.itemFavoriteIcon}
           />
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      {/* Tiêu đề */}
+      {/* Header */}
       <View style={styles.innerPadding}>
         <View style={styles.header}>
           <View style={styles.leftHeader}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
               <Image
                 source={require('../../../media/pictures/back.png')}
                 style={styles.backIcon}
@@ -99,7 +122,7 @@ const WorkoutScreen = () => {
           </View>
 
           <View style={styles.rightHeader}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)}>
               <Image
                 source={require('../../../media/pictures/Search_icon.png')}
                 style={styles.headerIcon}
@@ -119,9 +142,20 @@ const WorkoutScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Ô tìm kiếm */}
+        {searchVisible && (
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Nhập tên bài tập..."
+            placeholderTextColor="#888"
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+        )}
       </View>
 
-      {/* Nút chọn cấp độ */}
+      {/* Cấp độ */}
       <View style={[styles.levelContainer, styles.innerPadding]}>
         <TouchableOpacity style={styles.levelButton}>
           <Text style={styles.levelText}>Người mới</Text>
@@ -134,21 +168,18 @@ const WorkoutScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Khối nổi bật */}
+      {/* Banner bài tập trong ngày */}
       <View style={styles.featuredWrapper}>
         <View style={styles.featuredCard}>
           <Image
             source={require('../../../media/pictures/workout1.jpg')}
             style={styles.featuredImage}
           />
-
           <View style={styles.badgeWrap}>
             <Text style={styles.badgeText}>Bài tập trong ngày</Text>
           </View>
-
           <View style={styles.featuredOverlay}>
             <Text style={styles.featuredTitle}>Sức mạnh phần thân trên</Text>
-
             <View style={styles.featuredDetails}>
               <View style={styles.detailItem}>
                 <Image
@@ -157,7 +188,6 @@ const WorkoutScreen = () => {
                 />
                 <Text style={styles.featuredDetailText}>60 phút</Text>
               </View>
-
               <View style={styles.detailItem}>
                 <Image
                   source={require('../../../media/pictures/Calories.png')}
@@ -165,7 +195,6 @@ const WorkoutScreen = () => {
                 />
                 <Text style={styles.featuredDetailText}>120 Kcal</Text>
               </View>
-
               <View style={styles.detailItem}>
                 <Image
                   source={require('../../../media/pictures/Workout_icon.png')}
@@ -175,9 +204,17 @@ const WorkoutScreen = () => {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.featuredFavorite}>
+            {/* Nút sao yêu thích trong banner */}
+            <TouchableOpacity
+              style={styles.featuredFavorite}
+              onPress={() => toggleFavorite('featured')}
+            >
               <Image
-                source={require('../../../media/pictures/favorites_white_star.png')}
+                source={
+                  favorites['featured']
+                    ? require('../../../media/pictures/yellowstar.png')
+                    : require('../../../media/pictures/favorites_white_star.png')
+                }
                 style={styles.featuredFavoriteIcon}
               />
             </TouchableOpacity>
@@ -185,12 +222,11 @@ const WorkoutScreen = () => {
         </View>
       </View>
 
-      {/* Tiêu đề danh sách + danh sách */}
+      {/* Danh sách bài tập */}
       <View style={styles.innerPadding}>
         <Text style={styles.unlockTitle}>Khám phá tiềm năng của bạn</Text>
-
         <FlatList
-          data={workoutData}
+          data={filteredData}
           renderItem={renderWorkoutItem}
           keyExtractor={item => item.id}
           contentContainerStyle={{ paddingBottom: 90 }}
@@ -202,13 +238,14 @@ const WorkoutScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  // Giữ nguyên phần style (không dịch để code vẫn hoạt động)
   container: {
     flex: 1,
     backgroundColor: '#fff',
     paddingTop: Platform.OS === 'ios' ? 36 : 10,
   },
   innerPadding: { paddingHorizontal: 18 },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -220,6 +257,21 @@ const styles = StyleSheet.create({
   backIcon: { width: 22, height: 22, marginRight: 12, resizeMode: 'contain' },
   headerIcon: { width: 26, height: 26, marginLeft: 14, resizeMode: 'contain' },
   title: { fontSize: 22, fontWeight: '700', color: '#111' },
+
+  // Search
+  searchInput: {
+    backgroundColor: '#f3f3f3',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 8,
+    fontSize: 16,
+    color: '#000',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+
+  // Level buttons
   levelContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -238,9 +290,10 @@ const styles = StyleSheet.create({
     borderColor: '#000',
   },
   levelText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+
+  // Banner
   featuredWrapper: {
     backgroundColor: '#20B24A',
-    borderRadius: 0,
     padding: 12,
     marginBottom: 18,
   },
@@ -285,9 +338,6 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 13,
     fontWeight: '600',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
   },
   featuredFavorite: {
     position: 'absolute',
@@ -302,8 +352,9 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     resizeMode: 'contain',
-    tintColor: '#fff',
   },
+
+  // Workout list
   unlockTitle: {
     fontSize: 18,
     fontWeight: '700',
@@ -319,7 +370,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
   },
   workoutInfo: { flex: 1 },
   workoutTitle: {

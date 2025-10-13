@@ -1,14 +1,22 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const Stack = createNativeStackNavigator();
-
-//import OnBoarding1 from '../user/screens/Onboarding1';
-//import OnBoarding2 from '../user/screens/Onboarding2';
-import SurveyScreen from '../user/screens/SurveyScreen';
-import RegisterScreen from '../user/screens/RegisterScreen';
+// 🟩 Import tất cả các màn hình bạn có trong thư mục /user/screens/
+import CustomerService from '../user/screens/CustomerService';
+import HelpScreen from '../user/screens/HelpScreen';
+import HelpScreen2 from '../user/screens/HelpScreen2';
 import LoginScreen from '../user/screens/LoginScreen';
+import NewsScreen from '../user/screens/NewsScreen';
+import OnlineSupport from '../user/screens/OnlineSupport';
+import RegisterScreen from '../user/screens/RegisterScreen';
+import SurveyScreen from '../user/screens/SurveyScreen';
 import VerifyScreen from '../user/screens/VerifyScreen';
+import WelcomeScreen from '../user/screens/WelcomeScreen';
+import WorkoutScreen from '../user/screens/WorkoutScreen';
+import WorkoutScreen2 from '../user/screens/WorkoutScreen2';
+import WorkoutVideo from '../user/screens/WorkoutVideo';
+
+const Stack = createNativeStackNavigator();
 
 const UserNavigation = () => {
   return (
@@ -18,12 +26,19 @@ const UserNavigation = () => {
         headerShown: false,
       }}
     >
-      {/* <Stack.Screen name="OnBoarding1" component={OnBoarding1} /> */}
-      {/* <Stack.Screen name="OnBoarding2" component={OnBoarding2} /> */}
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
       <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
       <Stack.Screen name="VerifyScreen" component={VerifyScreen} />
       <Stack.Screen name="SurveyScreen" component={SurveyScreen} />
+      <Stack.Screen name="CustomerService" component={CustomerService} />
+      <Stack.Screen name="HelpScreen" component={HelpScreen} />
+      <Stack.Screen name="HelpScreen2" component={HelpScreen2} />
+      <Stack.Screen name="NewsScreen" component={NewsScreen} />
+      <Stack.Screen name="OnlineSupport" component={OnlineSupport} />
+      <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} />
+      <Stack.Screen name="WorkoutScreen" component={WorkoutScreen} />
+      <Stack.Screen name="WorkoutScreen2" component={WorkoutScreen2} />
+      <Stack.Screen name="WorkoutVideo" component={WorkoutVideo} />
     </Stack.Navigator>
   );
 };

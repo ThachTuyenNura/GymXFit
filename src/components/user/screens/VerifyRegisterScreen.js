@@ -10,10 +10,18 @@ import {
   Keyboard,
 } from 'react-native';
 
+import { verifyOtp, requestOTP } from '../UserHTTP';
+import { useRoute } from '@react-navigation/native';
+
 const VerifyScreen = ({ navigation }) => {
-  const [code, setCode] = useState(['', '', '', '']);
-  const [countdown, setCountdown] = useState(0);
+  const [otp, setOtp] = useState(['', '', '', '']);
+  const [countdown, setCountdown] = useState(60);
+  const [isLoading, setIsLoading] = useState(false); // State cho nút "Tiếp tục"
+  const [isResending, setIsResending] = useState(false);
   const inputsRef = useRef([]);
+  // Lấy dữ liệu (phone và sessionId) từ màn hình RegisterScreen gửi qua
+  const route = useRoute();
+  const { phone } = route.params;
 
   // ⏳ Đếm ngược gửi lại mã
   useEffect(() => {
@@ -35,7 +43,7 @@ const VerifyScreen = ({ navigation }) => {
   const handleChange = (text, index) => {
     const char = text.replace(/[^0-9]/g, '').slice(0, 1);
 
-    setCode(prev => {
+    setOtp(prev => {
       const next = [...prev];
       next[index] = char;
       return next;
@@ -53,27 +61,51 @@ const VerifyScreen = ({ navigation }) => {
   const handleAutoFill = fullText => {
     const digits = fullText.replace(/\D/g, '').slice(0, 4).split('');
     if (digits.length === 4) {
-      setCode(digits);
+      setOtp(digits);
       Keyboard.dismiss();
     }
   };
 
   // ✅ Tiếp tục → sang SurveyScreen
-  const handleContinue = () => {
-    const otp = code.join('').replace(/\D/g, '');
-    if (!/^\d{4}$/.test(otp)) {
+  const handleContinue = async () => {
+    const code = otp.join('').replace(/\D/g, '');
+    if (!/^\d{4}$/.test(code)) {
       Alert.alert('Lỗi', 'Vui lòng nhập đủ 4 chữ số mã xác thực.');
       return;
     }
 
     Keyboard.dismiss();
-    navigation.navigate('SurveyScreen'); // 🟢 đổi sang SurveyScreen
+    setIsLoading(true)
+    try {
+      // Gọi API để xác thực
+      await verifyOtp(phone, code);
+
+      Alert.alert('Thành công!', 'Số điện thoại của bạn đã được xác thực.', [
+        { text: 'OK', onPress: () => navigation.navigate('SurveyScreen') },
+      ]);
+    } catch (error) {
+      Alert.alert('Xác thực thất bại', error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleResendCode = () => {
-    if (countdown > 0) return;
-    Alert.alert('Thành công', 'Mã xác thực đã được gửi lại!');
-    setCountdown(60);
+  const handleResendCode = async () => {
+    if (countdown > 0 || isResending) return;
+
+    setIsResending(true);
+    try {
+      // Gọi API yêu cầu gửi lại OTP
+      // Lưu ý: Backend có thể trả về sessionId mới, nhưng trong trường hợp đơn giản,
+      // ta chỉ cần gọi lại để nhận mã mới.
+      await requestOTP(phone);
+      Alert.alert('Thành công', 'Mã xác thực mới đã được gửi lại!');
+      setCountdown(60); // Reset bộ đếm khi thành công
+    } catch (error) {
+      Alert.alert('Lỗi', error.message);
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -94,7 +126,7 @@ const VerifyScreen = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.exitButton}
-          onPress={() => navigation.navigate('LoginScreen')}
+          onPress={() => navigation.navigate('Register')}
         >
           <Image
             source={require('../../../media/pictures/Exit_black.png')}
@@ -106,11 +138,11 @@ const VerifyScreen = ({ navigation }) => {
       {/* Nội dung */}
       <View style={styles.content}>
         <Text style={styles.subtitle}>
-          Nhập mã gồm 4 chữ số mà FitNexus vừa gửi đến +84 070 123 4567
+          Nhập mã gồm 4 chữ số mà FitNexus vừa gửi đến {phone}
         </Text>
 
         <View style={styles.inputContainer}>
-          {code.map((digit, index) => (
+          {otp.map((digit, index) => (
             <TextInput
               key={index}
               ref={el => (inputsRef.current[index] = el)}

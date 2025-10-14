@@ -10,7 +10,8 @@ import NewsScreen from '../user/screens/NewsScreen';
 import OnlineSupport from '../user/screens/OnlineSupport';
 import RegisterScreen from '../user/screens/RegisterScreen';
 import SurveyScreen from '../user/screens/SurveyScreen';
-import VerifyScreen from '../user/screens/VerifyScreen';
+import VerifyRegisterScreen from './screens/VerifyRegisterScreen';
+import VerifyLoginScreen from './screens/VerifyLoginScreen';
 import WelcomeScreen from '../user/screens/WelcomeScreen';
 import WorkoutScreen from '../user/screens/WorkoutScreen';
 import WorkoutScreen2 from '../user/screens/WorkoutScreen2';
@@ -21,14 +22,15 @@ const Stack = createNativeStackNavigator();
 const UserNavigation = () => {
   return (
     <Stack.Navigator
-      initialRouteName="LoginScreen"
+      initialRouteName="WelcomeScreen"
       screenOptions={{
         headerShown: false,
       }}
     >
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
       <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-      <Stack.Screen name="VerifyScreen" component={VerifyScreen} />
+      <Stack.Screen name="VerifyRegisterScreen" component={VerifyRegisterScreen} />
+      <Stack.Screen name="VerifyLoginScreen" component={VerifyLoginScreen} />
       <Stack.Screen name="SurveyScreen" component={SurveyScreen} />
       <Stack.Screen name="CustomerService" component={CustomerService} />
       <Stack.Screen name="HelpScreen" component={HelpScreen} />

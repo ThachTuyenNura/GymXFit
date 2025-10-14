@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 
-const LoginScreen = props => {
+const LoginScreen = (props) => {
   const { navigation } = props;
   const [mobileNumber, setMobileNumber] = useState('');
 

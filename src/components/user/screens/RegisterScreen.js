@@ -7,39 +7,67 @@ import {
   StyleSheet,
   Image,
   Alert,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { requestOTP } from '../UserHTTP';
 
 const RegisterScreen = props => {
   const { navigation } = props;
   const [mobileNumber, setMobileNumber] = useState('');
+  // Thêm state để quản lý trạng thái loading
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const trimmedNumber = mobileNumber.trim();
 
-    // 🟥 Kiểm tra rỗng
+    //Kiểm tra rỗng
     if (trimmedNumber === '') {
       Alert.alert('Lỗi', 'Vui lòng nhập số điện thoại.');
       return;
     }
 
-    // 🟧 Kiểm tra ít nhất 9 chữ số
-    if (trimmedNumber.length < 9) {
-      Alert.alert('Lỗi', 'Số điện thoại phải có ít nhất 9 chữ số.');
+    //Kiểm tra ít nhất 10 chữ số
+    if (trimmedNumber.length !== 10) {
+      Alert.alert('Lỗi', 'Số điện thoại phải có 10 chữ số.');
       return;
     }
 
-    // 🟢 Hợp lệ → sang VerifyScreen
-    navigation.navigate('VerifyScreen');
+    try {
+      //gọi api để gửi otp
+      const response = await requestOTP(trimmedNumber);
+      // In kết quả ra để debug
+      console.log('API Response:', response);
+      // Nếu API thành công, backend sẽ trả về sessionId
+      if (response) {
+        Alert.alert('Thành công', 'Mã OTP đã được gửi đến số điện thoại của bạn.');
+        // Chuyển sang màn hình xác thực, truyền cả SĐT và sessionId
+        navigation.navigate('VerifyRegisterScreen', {
+          phone: trimmedNumber
+          // sessionId: response.sessionId,
+        });
+      } else {
+        // Trường hợp API không lỗi nhưng không trả về sessionId
+        Alert.alert('Lỗi', 'Không nhận được phiên làm việc từ máy chủ.');
+      }
+    } catch (error) {
+      // Bắt lỗi từ API (ví dụ: số điện thoại đã tồn tại, server lỗi...)
+      const errorMessage =
+        error.response?.data?.message || 'Gửi OTP không thành công. Vui lòng thử lại.';
+      Alert.alert('Lỗi', errorMessage);
+    }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Logo */}
-      <Image
-        source={require('../../../media/pictures/logo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+    <SafeAreaView style={styles.container}>
+      <View>
+        {/* Logo */}
+        <Image
+          source={require('../../../media/pictures/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
 
       {/* Phụ đề */}
       <Text style={styles.subtitle}>Đăng ký với FitNexus</Text>
@@ -53,11 +81,13 @@ const RegisterScreen = props => {
           keyboardType="phone-pad"
           value={mobileNumber}
           onChangeText={setMobileNumber}
+          editable={!isLoading} // Không cho sửa khi đang loading
         />
       </View>
 
       {/* Nút đăng ký */}
-      <TouchableOpacity onPress={handleRegister} style={styles.button}>
+      <TouchableOpacity onPress={handleRegister}
+        style={styles.button}>
         <Text style={styles.buttonText}>Đăng ký</Text>
       </TouchableOpacity>
 
@@ -71,7 +101,7 @@ const RegisterScreen = props => {
           Đăng nhập
         </Text>
       </Text>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -79,7 +109,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
   },

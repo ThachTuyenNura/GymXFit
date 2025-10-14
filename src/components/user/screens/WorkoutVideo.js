@@ -130,7 +130,7 @@ const WorkoutVideo = ({ navigation }) => {
             <View style={styles.infoRowWrapper}>
               <View style={styles.infoItem}>
                 <Image
-                  source={require('../../../media/pictures/Time.png')}
+                  source={require('../../../media/pictures/time.png')}
                   style={styles.smallIcon}
                 />
                 <Text style={styles.infoItemText}>30 giây</Text>
@@ -138,7 +138,7 @@ const WorkoutVideo = ({ navigation }) => {
 
               <View style={styles.infoItem}>
                 <Image
-                  source={require('../../../media/pictures/Calories.png')}
+                  source={require('../../../media/pictures/calories.png')}
                   style={styles.smallIcon}
                 />
                 <Text style={styles.infoItemText}>3 lần</Text>

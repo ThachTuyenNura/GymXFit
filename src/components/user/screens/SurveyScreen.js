@@ -10,8 +10,10 @@ import {
   ScrollView,
   Platform,
   Alert,
+  KeyboardAvoidingView,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SurveyScreen = ({ navigation }) => {
   const [ten, setTen] = useState('');
@@ -93,132 +95,142 @@ const SurveyScreen = ({ navigation }) => {
     ]);
   };
 
+  const androidBehavior = Platform.OS === 'android' ? 'height' : undefined;
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Logo */}
-      <Image
-        source={require('../../../media/pictures/logo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-
-      {/* Tiêu đề */}
-      <Text style={styles.title}>Cập nhật thông tin</Text>
-      <Text style={styles.subtitle}>
-        Vui lòng điền thông tin cá nhân của bạn
-      </Text>
-
-      {/* Form */}
-      <View style={styles.form}>
-        {/* Họ tên */}
-        <TextInput
-          style={styles.input}
-          placeholder="Họ và tên"
-          placeholderTextColor="#888"
-          value={ten}
-          onChangeText={setTen}
-        />
-
-        {/* Ngày sinh */}
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowPicker(true)}
-        >
-          <Text style={{ color: ngaySinh ? '#000' : '#888' }}>
-            {ngaySinh ? formatDate(ngaySinh) : 'Ngày sinh'}
-          </Text>
-        </TouchableOpacity>
-        {showPicker && (
-          <DateTimePicker
-            value={ngaySinh || new Date()}
-            mode="date"
-            display="spinner"
-            onChange={onChangeDate}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={androidBehavior}
+      keyboardVerticalOffset={0}
+    >
+      <SafeAreaView>
+        <View style={styles.headerContainer}>
+          {/* Logo */}
+          <Image
+            source={require('../../../media/pictures/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
           />
-        )}
 
-        {/* Giới tính */}
-        <Text style={styles.label}>Giới tính</Text>
-        <View style={styles.genderContainer}>
-          <TouchableOpacity
-            style={styles.genderOption}
-            onPress={() => setGioiTinh('Nam')}
-          >
-            <View
-              style={[
-                styles.radioOuter,
-                gioiTinh === 'Nam' && styles.radioSelected,
-              ]}
-            >
-              {gioiTinh === 'Nam' && <View style={styles.radioInner} />}
-            </View>
-            <Text style={styles.genderText}>Nam</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.genderOption}
-            onPress={() => setGioiTinh('Nữ')}
-          >
-            <View
-              style={[
-                styles.radioOuter,
-                gioiTinh === 'Nữ' && styles.radioSelected,
-              ]}
-            >
-              {gioiTinh === 'Nữ' && <View style={styles.radioInner} />}
-            </View>
-            <Text style={styles.genderText}>Nữ</Text>
-          </TouchableOpacity>
+          {/* Tiêu đề */}
+          <Text style={styles.title}>Cập nhật thông tin</Text>
+          <Text style={styles.subtitle}>
+            Vui lòng điền thông tin cá nhân của bạn
+          </Text>
         </View>
 
-        {/* Email */}
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#888"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
+        {/* Form */}
+        <View style={styles.form}>
+          {/* Họ tên */}
+          <TextInput
+            style={styles.input}
+            placeholder="Họ và tên"
+            placeholderTextColor="#888"
+            value={ten}
+            onChangeText={setTen}
+          />
 
-        {/* Chiều cao */}
-        <TextInput
-          style={styles.input}
-          placeholder="Chiều cao (cm)"
-          placeholderTextColor="#888"
-          keyboardType="numeric"
-          value={chieuCao}
-          onChangeText={setChieuCao}
-        />
+          {/* Ngày sinh */}
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() => setShowPicker(true)}
+          >
+            <Text style={{ color: ngaySinh ? '#000' : '#888' }}>
+              {ngaySinh ? formatDate(ngaySinh) : 'Ngày sinh'}
+            </Text>
+          </TouchableOpacity>
+          {showPicker && (
+            <DateTimePicker
+              value={ngaySinh || new Date()}
+              mode="date"
+              display="spinner"
+              onChange={onChangeDate}
+            />
+          )}
 
-        {/* Cân nặng */}
-        <TextInput
-          style={styles.input}
-          placeholder="Cân nặng (kg)"
-          placeholderTextColor="#888"
-          keyboardType="numeric"
-          value={canNang}
-          onChangeText={setCanNang}
-        />
-      </View>
+          {/* Giới tính */}
+          <Text style={styles.label}>Giới tính</Text>
+          <View style={styles.genderContainer}>
+            <TouchableOpacity
+              style={styles.genderOption}
+              onPress={() => setGioiTinh('Nam')}
+            >
+              <View
+                style={[
+                  styles.radioOuter,
+                  gioiTinh === 'Nam' && styles.radioSelected,
+                ]}
+              >
+                {gioiTinh === 'Nam' && <View style={styles.radioInner} />}
+              </View>
+              <Text style={styles.genderText}>Nam</Text>
+            </TouchableOpacity>
 
-      {/* Nút Gửi */}
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Xác nhận thông tin</Text>
-      </TouchableOpacity>
-    </ScrollView>
+            <TouchableOpacity
+              style={styles.genderOption}
+              onPress={() => setGioiTinh('Nữ')}
+            >
+              <View
+                style={[
+                  styles.radioOuter,
+                  gioiTinh === 'Nữ' && styles.radioSelected,
+                ]}
+              >
+                {gioiTinh === 'Nữ' && <View style={styles.radioInner} />}
+              </View>
+              <Text style={styles.genderText}>Nữ</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Email */}
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#888"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          {/* Chiều cao */}
+          <TextInput
+            style={styles.input}
+            placeholder="Chiều cao (cm)"
+            placeholderTextColor="#888"
+            keyboardType="numeric"
+            value={chieuCao}
+            onChangeText={setChieuCao}
+          />
+
+          {/* Cân nặng */}
+          <TextInput
+            style={styles.input}
+            placeholder="Cân nặng (kg)"
+            placeholderTextColor="#888"
+            keyboardType="numeric"
+            value={canNang}
+            onChangeText={setCanNang}
+          />
+        </View>
+
+        {/* Nút Gửi */}
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>Xác nhận thông tin</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
 // Styles
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 24,
+    padding: 35
+  },
+  headerContainer: {
+    alignItems: 'center'
   },
   logo: {
     width: 180,

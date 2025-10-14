@@ -62,7 +62,7 @@ const WorkoutScreen2 = ({ navigation }) => {
         <Text style={styles.exerciseTitle}>{item.title}</Text>
         <View style={styles.exerciseDetails}>
           <Image
-            source={require('../../../media/pictures/Time.png')}
+            source={require('../../../media/pictures/time.png')}
             style={styles.detailIcon}
           />
           <Text style={styles.exerciseTime}>{item.time}</Text>
@@ -125,14 +125,14 @@ const WorkoutScreen2 = ({ navigation }) => {
             <View style={styles.featuredDetails}>
               <View style={styles.detailRow}>
                 <Image
-                  source={require('../../../media/pictures/Time.png')}
+                  source={require('../../../media/pictures/time.png')}
                   style={styles.detailIcon}
                 />
                 <Text style={styles.featuredDetailText}>60 Phút</Text>
               </View>
               <View style={styles.detailRow}>
                 <Image
-                  source={require('../../../media/pictures/Calories.png')}
+                  source={require('../../../media/pictures/calories.png')}
                   style={styles.detailIcon}
                 />
                 <Text style={styles.featuredDetailText}>1450 Kcal</Text>

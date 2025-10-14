@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
 
-const WelcomeScreen = () => {
+const WelcomeScreen = ({ navigation }) => {
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.replace('RegisterScreen');
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
+
   return (
     <View style={styles.container}>
       {/* Background */}
       <Image
-        source={require('../../../media/pictures/workout1.jpg')} // ✅ sửa đường dẫn
         style={styles.backgroundImage}
+        source={require('../../../media/pictures/workout1.jpg')} // ✅ sửa đường dẫn
       />
 
       {/* Overlay */}
@@ -22,34 +31,24 @@ const WelcomeScreen = () => {
   );
 };
 
-const { width, height } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
   backgroundImage: {
-    width: width, // full chiều rộng màn hình
-    height: height, // full chiều cao màn hình
+    width: '100%', // full chiều rộng màn hình
+    height: '100%', // full chiều cao màn hình
     position: 'absolute',
     top: 0,
     left: 0,
     resizeMode: 'cover', // hình ảnh fill toàn màn hình
   },
-  overlay: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    top: 339, // vị trí logo
-    left: '50%',
-    transform: [{ translateX: -100 }], // căn giữa theo X
-  },
   logo: {
-    width: 187,
-    height: 138,
-    marginTop: 20,
+    marginTop: 24
   },
   welcomeText: {
     fontSize: 24,

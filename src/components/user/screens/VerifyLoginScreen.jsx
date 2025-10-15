@@ -67,7 +67,7 @@ const VerifyScreen = ({ navigation }) => {
         }
 
         Keyboard.dismiss();
-        navigation.navigate('Home');
+        navigation.navigate('UpdateProfile');
     };
 
     const handleResendCode = () => {

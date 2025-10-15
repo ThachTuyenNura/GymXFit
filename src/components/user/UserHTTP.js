@@ -47,11 +47,11 @@ export const requestOTP = async (phoneNumber) => {
     }
 }
 
-export async function verifyOtp(phone, code) {
+export async function verifyOtp(phoneNumber, code) {
     try {
         // gọi API
         const response = await AxiosInstance().post('/api/auth/verify-register', {
-            phone: phone,
+            phone: phoneNumber,
             code: code,
         });
         // Nếu thành công, trả về dữ liệu
@@ -59,6 +59,26 @@ export async function verifyOtp(phone, code) {
     } catch (error) {
         // Nếu thất bại, lấy thông báo lỗi và NÉM nó ra
         const errorMessage = error.response?.data?.message || 'Mã OTP không hợp lệ hoặc đã hết hạn.';
+        throw new Error(errorMessage);
+    }
+}
+
+export async function getProfile() {
+    try {
+        const response = await AxiosInstance().get('/api/user/profile');
+        return response;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Không thể tải thông tin cá nhân.';
+        throw new Error(errorMessage);
+    }
+}
+
+export async function updateProfile(profileData) {
+    try {
+        const response = await AxiosInstance().put('/api/user/profile', profileData);
+        return response;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Cập nhật thông tin thất bại.';
         throw new Error(errorMessage);
     }
 }

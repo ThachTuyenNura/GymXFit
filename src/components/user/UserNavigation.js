@@ -16,13 +16,14 @@ import WelcomeScreen from '../user/screens/WelcomeScreen';
 import WorkoutScreen from '../user/screens/WorkoutScreen';
 import WorkoutScreen2 from '../user/screens/WorkoutScreen2';
 import WorkoutVideo from '../user/screens/WorkoutVideo';
+import UpdateProfile from '../allscreens/UpdateProfile';
 
 const Stack = createNativeStackNavigator();
 
 const UserNavigation = () => {
   return (
     <Stack.Navigator
-      initialRouteName="WelcomeScreen"
+      initialRouteName="LoginScreen"
       screenOptions={{
         headerShown: false,
       }}
@@ -41,6 +42,7 @@ const UserNavigation = () => {
       <Stack.Screen name="WorkoutScreen" component={WorkoutScreen} />
       <Stack.Screen name="WorkoutScreen2" component={WorkoutScreen2} />
       <Stack.Screen name="WorkoutVideo" component={WorkoutVideo} />
+      <Stack.Screen name="UpdateProfile" component={UpdateProfile} />
     </Stack.Navigator>
   );
 };

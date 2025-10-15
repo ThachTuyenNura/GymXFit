@@ -29,7 +29,7 @@ const LoginScreen = (props) => {
     }
 
     // 🟢 Nếu hợp lệ, chuyển sang WorkoutScreen
-    navigation.navigate('WorkoutScreen');
+    navigation.navigate('VerifyLoginScreen');
   };
 
   return (

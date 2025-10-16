@@ -1,4 +1,3 @@
-// screens/CustomerService.js
 import React from 'react';
 import {
   View,
@@ -19,7 +18,7 @@ const CustomerService = ({ navigation }) => {
           onPress={() => navigation.goBack()} // sự kiện quay lại
         >
           <Image
-            source={require('../../../media/pictures/back.png')}
+            source={require('../../media/pictures/back.png')}
             style={styles.backIcon}
           />
         </TouchableOpacity>
@@ -41,7 +40,7 @@ const CustomerService = ({ navigation }) => {
           <Text style={styles.optionSubtitle}>Hỗ trợ</Text>
         </View>
         <Image
-          source={require('../../../media/pictures/arrow_right.png')}
+          source={require('../../media/pictures/arrow_right.png')}
           style={styles.arrowIcon}
         />
       </TouchableOpacity>
@@ -53,7 +52,7 @@ const CustomerService = ({ navigation }) => {
           <Text style={styles.optionSubtitle}>Thông tin chung</Text>
         </View>
         <Image
-          source={require('../../../media/pictures/arrow_right.png')}
+          source={require('../../media/pictures/arrow_right.png')}
           style={styles.arrowIcon}
         />
       </TouchableOpacity>

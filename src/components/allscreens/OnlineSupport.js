@@ -9,9 +9,9 @@ import {
   TextInput,
   Platform,
   ScrollView,
-  SafeAreaView,
   KeyboardAvoidingView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const OnlineSupport = ({ navigation }) => {
   return (
@@ -19,15 +19,15 @@ const OnlineSupport = ({ navigation }) => {
       <View style={styles.container}>
         {/* Thanh tiêu đề */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation?.goBack?.()}>
+          <TouchableOpacity onPress={() => navigation.navigate('HelpScreen2')}>
             <Image
-              source={require('../../../media/pictures/back.png')}
+              source={require('../../media/pictures/back.png')}
               style={styles.backIcon}
             />
           </TouchableOpacity>
 
           <Image
-            source={require('../../../media/pictures/customerserviceicon.png')}
+            source={require('../../media/pictures/customerserviceicon.png')}
             style={styles.avatar}
             resizeMode="contain"
           />
@@ -38,23 +38,25 @@ const OnlineSupport = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Khu vực trò chuyện (nền trắng, trống) */}
+        {/* Khu vực trò chuyện */}
         <KeyboardAvoidingView
           style={styles.chatWrapper}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
         >
           <ScrollView
             style={styles.chatArea}
             contentContainerStyle={styles.chatContent}
             showsVerticalScrollIndicator={false}
-          ></ScrollView>
+          >
+            {/* Chưa có tin nhắn */}
+          </ScrollView>
 
           {/* Thanh nhập tin nhắn */}
           <View style={styles.inputContainer}>
-            <TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8}>
               <Image
-                source={require('../../../media/pictures/File.png')}
+                source={require('../../media/pictures/File.png')}
                 style={styles.icon}
               />
             </TouchableOpacity>
@@ -65,16 +67,16 @@ const OnlineSupport = ({ navigation }) => {
               placeholderTextColor="#6D6D6D"
             />
 
-            <TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8}>
               <Image
-                source={require('../../../media/pictures/Voice.png')}
+                source={require('../../media/pictures/Voice.png')}
                 style={styles.icon}
               />
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8}>
               <Image
-                source={require('../../../media/pictures/Send.png')}
+                source={require('../../media/pictures/Send.png')}
                 style={styles.icon}
               />
             </TouchableOpacity>
@@ -85,56 +87,78 @@ const OnlineSupport = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
-  container: { flex: 1, backgroundColor: '#fff' },
+export default OnlineSupport;
 
-  /* Thanh tiêu đề */
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+
+  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 18 : 14,
+    paddingTop: Platform.OS === 'ios' ? 12 : 10,
     paddingBottom: 8,
   },
   backIcon: {
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     resizeMode: 'contain',
-    marginRight: 8,
+    marginRight: 10,
   },
   avatar: {
     width: 52,
     height: 52,
     marginRight: 10,
   },
-  headerText: { flexDirection: 'column' },
-  title: { fontSize: 18, fontWeight: '700', color: '#000' },
-  subtitle: { fontSize: 12, color: '#555' },
+  headerText: {
+    flexDirection: 'column',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000',
+  },
+  subtitle: {
+    fontSize: 12,
+    color: '#555',
+  },
 
-  /* Khu vực trò chuyện */
-  chatWrapper: { flex: 1 },
+  /* Chat area */
+  chatWrapper: {
+    flex: 1,
+  },
   chatArea: {
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 16,
   },
-  chatContent: { paddingTop: 10, paddingBottom: 24 },
+  chatContent: {
+    paddingTop: 10,
+    paddingBottom: 24,
+  },
 
-  /* Thanh nhập tin nhắn */
+  /* Input bar */
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 16,
     marginBottom: 16,
-    backgroundColor: '#EEF94E', // nền vàng như mẫu
+    backgroundColor: '#EEF94E',
     borderRadius: 30,
     paddingHorizontal: 12,
     paddingVertical: Platform.OS === 'ios' ? 10 : 6,
   },
   input: {
     flex: 1,
-    backgroundColor: '#fff', // khung nhập trắng
+    backgroundColor: '#fff',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: Platform.OS === 'ios' ? 10 : 6,
@@ -148,5 +172,3 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
 });
-
-export default OnlineSupport;

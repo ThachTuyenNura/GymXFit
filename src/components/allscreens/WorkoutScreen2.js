@@ -50,8 +50,8 @@ const WorkoutScreen2 = ({ navigation }) => {
         <Image
           source={
             item.active
-              ? require('../../../media/pictures/Play_Button_2.png')
-              : require('../../../media/pictures/Play_Button.png')
+              ? require('../../media/pictures/Play_Button_2.png')
+              : require('../../media/pictures/Play_Button.png')
           }
           style={styles.playIcon}
         />
@@ -62,7 +62,7 @@ const WorkoutScreen2 = ({ navigation }) => {
         <Text style={styles.exerciseTitle}>{item.title}</Text>
         <View style={styles.exerciseDetails}>
           <Image
-            source={require('../../../media/pictures/time.png')}
+            source={require('../../media/pictures/time.png')}
             style={styles.detailIcon}
           />
           <Text style={styles.exerciseTime}>{item.time}</Text>
@@ -81,7 +81,7 @@ const WorkoutScreen2 = ({ navigation }) => {
         <View style={styles.leftHeader}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Image
-              source={require('../../../media/pictures/back.png')}
+              source={require('../../media/pictures/back.png')}
               style={styles.backIcon}
             />
           </TouchableOpacity>
@@ -90,19 +90,19 @@ const WorkoutScreen2 = ({ navigation }) => {
         <View style={styles.rightHeader}>
           <TouchableOpacity>
             <Image
-              source={require('../../../media/pictures/Search_icon.png')}
+              source={require('../../media/pictures/Search_icon.png')}
               style={styles.headerIcon}
             />
           </TouchableOpacity>
           <TouchableOpacity>
             <Image
-              source={require('../../../media/pictures/Notifications_icon.png')}
+              source={require('../../media/pictures/Notifications_icon.png')}
               style={styles.headerIcon}
             />
           </TouchableOpacity>
           <TouchableOpacity>
             <Image
-              source={require('../../../media/pictures/User_Icon.png')}
+              source={require('../../media/pictures/User_Icon.png')}
               style={styles.headerIcon}
             />
           </TouchableOpacity>
@@ -113,7 +113,7 @@ const WorkoutScreen2 = ({ navigation }) => {
       <View style={styles.featuredWrapper}>
         <View style={styles.featuredCard}>
           <Image
-            source={require('../../../media/pictures/workout1.jpg')}
+            source={require('../../media/pictures/workout1.jpg')}
             style={styles.featuredImage}
           />
 
@@ -125,21 +125,21 @@ const WorkoutScreen2 = ({ navigation }) => {
             <View style={styles.featuredDetails}>
               <View style={styles.detailRow}>
                 <Image
-                  source={require('../../../media/pictures/time.png')}
+                  source={require('../../media/pictures/time.png')}
                   style={styles.detailIcon}
                 />
                 <Text style={styles.featuredDetailText}>60 Phút</Text>
               </View>
               <View style={styles.detailRow}>
                 <Image
-                  source={require('../../../media/pictures/calories.png')}
+                  source={require('../../media/pictures/calories.png')}
                   style={styles.detailIcon}
                 />
                 <Text style={styles.featuredDetailText}>1450 Kcal</Text>
               </View>
               <View style={styles.detailRow}>
                 <Image
-                  source={require('../../../media/pictures/Workout_icon.png')}
+                  source={require('../../media/pictures/Workout_icon.png')}
                   style={styles.detailIcon}
                 />
                 <Text style={styles.featuredDetailText}>Nâng cao</Text>
@@ -148,7 +148,7 @@ const WorkoutScreen2 = ({ navigation }) => {
 
             <TouchableOpacity style={styles.featuredFavorite}>
               <Image
-                source={require('../../../media/pictures/favorites_white_star.png')}
+                source={require('../../media/pictures/favorites_white_star.png')}
                 style={styles.featuredFavoriteIcon}
               />
             </TouchableOpacity>

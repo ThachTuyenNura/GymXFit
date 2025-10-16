@@ -1,37 +1,5 @@
 import AxiosInstance from "../../http/AxiosInstance";
 
-export const login = async (email, password) => {
-    try {
-        const axiosInstance = AxiosInstance();
-        const url = '/auth/login';
-        const body = {
-            email: email,
-            password: password
-        };
-        return await axiosInstance.post(url, body);
-        // return await AxiosInstance().post(url, body);
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }
-}
-
-// export const register = async (email, password) => {
-//     try {
-//         const axiosInstance = AxiosInstance();
-//         const url = '/api/auth/register';
-//         const body = {
-//             email: email,
-//             password: password
-//         };
-//         return await axiosInstance.post(url, body);
-//         // return await AxiosInstance().post(url, body);
-//     } catch (error) {
-//         console.log(error);
-//         throw error;
-//     }
-// }
-
 export const requestOTP = async (phoneNumber) => {
     try {
         console.log('Bắt đầu gửi yêu cầu OTP cho số:', phoneNumber);
@@ -59,6 +27,36 @@ export async function verifyOtp(phoneNumber, code) {
     } catch (error) {
         // Nếu thất bại, lấy thông báo lỗi và NÉM nó ra
         const errorMessage = error.response?.data?.message || 'Mã OTP không hợp lệ hoặc đã hết hạn.';
+        throw new Error(errorMessage);
+    }
+}
+
+export async function requestLoginOtp(phoneNumber) {
+    try {
+        console.log('Bắt đầu gửi yêu cầu OTP đăng nhập cho số:', phoneNumber);
+        // Gọi đến endpoint /api/auth/login
+        const response = await AxiosInstance().post('/api/auth/login', {
+            phone: phoneNumber,
+        });
+        return response;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || 'Số điện thoại chưa được đăng ký.';
+        console.error('Lỗi khi yêu cầu OTP đăng nhập:', error.response?.data || error.message);
+        throw new Error(errorMessage);
+    }
+}
+
+export async function verifyLoginOtp(phoneNumber, code) {
+    try {
+        const response = await AxiosInstance().post('/api/auth/verify-login', {
+            phone: phoneNumber,
+            code: code,
+        });
+        // Nếu thành công, response sẽ chứa token và thông tin user
+        return response;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Mã OTP không hợp lệ.';
+        console.error('Lỗi khi xác thực OTP đăng nhập:', error.response?.data || error.message);
         throw new Error(errorMessage);
     }
 }

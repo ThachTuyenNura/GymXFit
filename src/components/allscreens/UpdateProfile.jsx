@@ -9,6 +9,7 @@ import {
     Alert, Platform, ActivityIndicator
 } from 'react-native';
 
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { getProfile, updateProfile } from '../user/UserHTTP';
 
 // Một hàm nhỏ để định dạng ngày tháng cho dễ nhìn
@@ -27,7 +28,7 @@ const formatDateForDisplay = (dateString) => {
 
 const UpdateProfile = ({ navigation }) => {
     const androidBehavior = Platform.OS === 'android' ? 'height' : undefined;
-
+    const [showPicker, setShowPicker] = useState(false);
     // --- State để lưu trữ thông tin người dùng ---
     const [profile, setProfile] = useState({
         name: '',
@@ -43,6 +44,16 @@ const UpdateProfile = ({ navigation }) => {
     const [isFetching, setIsFetching] = useState(true); // Khi tải dữ liệu lần đầu
     const [isUpdating, setIsUpdating] = useState(false); // Khi nhấn nút "Lưu"
 
+    const onChangeDate = (event, selectedDate) => {
+        // Luôn ẩn picker sau khi chọn xong hoặc hủy
+        setShowPicker(false);
+        // Chỉ cập nhật nếu người dùng đã chọn một ngày (không phải nhấn "Cancel")
+        if (selectedDate) {
+            const formattedDate = formatDateForDisplay(selectedDate);
+            handleInputChange('dob', formattedDate);
+        }
+    };
+
     // --- Tải thông tin người dùng khi màn hình được mở ---
     useEffect(() => {
         const fetchProfile = async () => {
@@ -54,7 +65,7 @@ const UpdateProfile = ({ navigation }) => {
                         name: user.name || '',
                         email: user.email || '',
                         phone: user.phone || '',
-                        dob: formatDateForDisplay(user.dob), // Định dạng lại ngày
+                        dob: formatDateForDisplay(user.dob) || '', // Định dạng lại ngày
                         weight: user.weight ? String(user.weight) : '', // Chuyển sang string
                         height: user.height ? String(user.height) : '', // Chuyển sang string
                         avatarUrl: user.avatarUrl
@@ -108,6 +119,14 @@ const UpdateProfile = ({ navigation }) => {
                 <ActivityIndicator size="large" color="#30C451" />
             </View>
         );
+    }
+
+    const dobAsDateObject = profile.dob
+        ? new Date(profile.dob.split('/').reverse().join('-'))
+        : new Date();
+    // Kiểm tra xem ngày có hợp lệ không, nếu không thì dùng ngày hiện tại
+    if (isNaN(dobAsDateObject.getTime())) {
+        dobAsDateObject = new Date();
     }
 
     return (
@@ -195,11 +214,21 @@ const UpdateProfile = ({ navigation }) => {
                         </View>
                         <View style={styles.itemInput}>
                             <Text style={styles.textItem}>Ngày sinh</Text>
-                            <TextInput style={styles.textInputItem}
-                                placeholder='dd/mm/yyyy'
-                                value={profile.dob}
-                                onChangeText={(text) => handleInputChange('dob', text)}
-                            />
+                            <TouchableOpacity onPress={() => setShowPicker(true)} >
+                                <TextInput style={styles.textInputItem}
+                                    placeholder='dd/mm/yyyy'
+                                    value={profile.dob}
+                                    editable={false}
+                                />
+                            </TouchableOpacity>
+                            {showPicker && (
+                                <DateTimePicker
+                                    value={dobAsDateObject} // Giá trị khởi tạo là đối tượng Date
+                                    mode="date"
+                                    display="spinner" // Giao diện đẹp hơn cho iOS và Android
+                                    onChange={onChangeDate}
+                                />
+                            )}
                         </View>
                         <View style={styles.itemInput}>
                             <Text style={styles.textItem}>Cân nặng</Text>
@@ -239,7 +268,7 @@ export default UpdateProfile;
 
 const styles = StyleSheet.create({
     button: {
-        color:'#fff',
+        color: '#fff',
         backgroundColor: '#30C451',
         paddingHorizontal: 25,
         paddingVertical: 10,

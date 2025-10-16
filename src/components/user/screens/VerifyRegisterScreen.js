@@ -8,20 +8,24 @@ import {
   Image,
   Alert,
   Keyboard,
+  ActivityIndicator
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { verifyOtp, requestOTP } from '../UserHTTP';
 import { useRoute } from '@react-navigation/native';
+import { useContext } from 'react';
+import { UserContext } from '../UserContext';
 
 const VerifyScreen = ({ navigation }) => {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [countdown, setCountdown] = useState(60);
-  const [isLoading, setIsLoading] = useState(false); // State cho nút "Tiếp tục"
   const [isResending, setIsResending] = useState(false);
-  const inputsRef = useRef([]);
-  // Lấy dữ liệu (phone và sessionId) từ màn hình RegisterScreen gửi qua
+  const [isVerifying, setIsVerifying] = useState(false);
   const route = useRoute();
   const { phone } = route.params;
+  const inputsRef = useRef([]);
+  const { login } = useContext(UserContext);
 
   // ⏳ Đếm ngược gửi lại mã
   useEffect(() => {
@@ -68,42 +72,63 @@ const VerifyScreen = ({ navigation }) => {
 
   // ✅ Tiếp tục → sang SurveyScreen
   const handleContinue = async () => {
-    const code = otp.join('').replace(/\D/g, '');
-    if (!/^\d{4}$/.test(code)) {
+    const code = otp.join('');
+    if (code.length !== 4) {
       Alert.alert('Lỗi', 'Vui lòng nhập đủ 4 chữ số mã xác thực.');
       return;
     }
 
     Keyboard.dismiss();
-    setIsLoading(true)
+    setIsVerifying(true);
+
     try {
       // Gọi API để xác thực
-      await verifyOtp(phone, code);
+      const response = await verifyOtp(phone, code);
 
-      Alert.alert('Thành công!', 'Số điện thoại của bạn đã được xác thực.', [
-        { text: 'OK', onPress: () => navigation.navigate('SurveyScreen') },
-      ]);
+      // <<< BƯỚC QUAN TRỌNG NHẤT >>>
+      // Kiểm tra xem backend có trả về token không
+      if (response.ok && response.token) {
+        // LƯU TOKEN VÀO BỘ NHỚ
+        // await AsyncStorage.setItem('token', response.token);
+        login(response.token);
+
+        // Alert.alert('Thành công!', 'Tài khoản của bạn đã được tạo.', [
+        //   { text: 'OK', onPress: () => navigation.navigate('SurveyScreen') },
+        // ]);
+      } else {
+        // Trường hợp backend không trả về token dù không báo lỗi
+        throw new Error(response.message || 'Xác thực thành công nhưng không nhận được token.');
+      }
     } catch (error) {
       Alert.alert('Xác thực thất bại', error.message);
     } finally {
-      setIsLoading(false);
+      setIsVerifying(false);
     }
   };
 
   const handleResendCode = async () => {
+    // 1. Điều kiện "phòng vệ": Không làm gì nếu đang đếm ngược hoặc đang trong quá trình gửi lại.
+    // Điều này ngăn người dùng nhấn nút liên tục.
     if (countdown > 0 || isResending) return;
-
+    // 2. Báo cho giao diện biết rằng quá trình gửi lại đã bắt đầu.
+    // Giao diện sẽ hiển thị "Đang gửi..."
     setIsResending(true);
+
     try {
-      // Gọi API yêu cầu gửi lại OTP
-      // Lưu ý: Backend có thể trả về sessionId mới, nhưng trong trường hợp đơn giản,
-      // ta chỉ cần gọi lại để nhận mã mới.
+      // Gọi hàm requestOTP với số điện thoại đã được truyền từ màn hình trước.
       await requestOTP(phone);
+      // Nếu API thành công:
       Alert.alert('Thành công', 'Mã xác thực mới đã được gửi lại!');
-      setCountdown(60); // Reset bộ đếm khi thành công
+      // Reset bộ đếm ngược về 60 giây.
+      setCountdown(60);
     } catch (error) {
-      Alert.alert('Lỗi', error.message);
+      // Nếu API thất bại (ví dụ: do backend giới hạn số lần gửi):
+      // Lấy thông báo lỗi từ server hoặc một thông báo mặc định.
+      const errorMessage = error.response?.data?.message || error.message;
+      Alert.alert('Gửi lại thất bại', errorMessage);
     } finally {
+      // 4. Khối này LUÔN LUÔN chạy, dù API thành công hay thất bại.
+      // Đảm bảo rằng trạng thái loading được tắt để người dùng có thể thử lại sau đó.
       setIsResending(false);
     }
   };
@@ -165,11 +190,16 @@ const VerifyScreen = ({ navigation }) => {
         </View>
 
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, isVerifying && styles.buttonDisabled]}
           onPress={handleContinue}
           activeOpacity={0.85}
+          disabled={isVerifying}
         >
-          <Text style={styles.buttonText}>Tiếp tục</Text>
+          {isVerifying ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Tiếp tục</Text>
+          )}
         </TouchableOpacity>
 
         <Text style={styles.resendText}>
@@ -187,6 +217,9 @@ const VerifyScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  buttonDisabled: { // <<< THÊM
+    backgroundColor: '#A5D6A7',
+  },
   container: { flex: 1, padding: 20, backgroundColor: 'white' },
   header: {
     flexDirection: 'row',

@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Image,
   Alert,
-  StatusBar,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { requestOTP } from '../UserHTTP';
@@ -33,28 +33,20 @@ const RegisterScreen = props => {
       return;
     }
 
+    setIsLoading(true); // Bật loading
+
     try {
-      //gọi api để gửi otp
-      const response = await requestOTP(trimmedNumber);
-      // In kết quả ra để debug
-      console.log('API Response:', response);
-      // Nếu API thành công, backend sẽ trả về sessionId
-      if (response) {
-        Alert.alert('Thành công', 'Mã OTP đã được gửi đến số điện thoại của bạn.');
-        // Chuyển sang màn hình xác thực, truyền cả SĐT và sessionId
-        navigation.navigate('VerifyRegisterScreen', {
-          phone: trimmedNumber
-          // sessionId: response.sessionId,
-        });
-      } else {
-        // Trường hợp API không lỗi nhưng không trả về sessionId
-        Alert.alert('Lỗi', 'Không nhận được phiên làm việc từ máy chủ.');
-      }
+      await requestOTP(trimmedNumber);
+      Alert.alert('Thành công', 'Mã OTP đã được gửi đến số điện thoại của bạn.');
+      navigation.navigate('VerifyRegisterScreen', {
+        phone: trimmedNumber
+      });
     } catch (error) {
       // Bắt lỗi từ API (ví dụ: số điện thoại đã tồn tại, server lỗi...)
-      const errorMessage =
-        error.response?.data?.message || 'Gửi OTP không thành công. Vui lòng thử lại.';
+      const errorMessage = error.response?.data?.error || error.message;
       Alert.alert('Lỗi', errorMessage);
+    } finally {
+      setIsLoading(false); // Tắt loading
     }
   };
 
@@ -86,9 +78,16 @@ const RegisterScreen = props => {
       </View>
 
       {/* Nút đăng ký */}
-      <TouchableOpacity onPress={handleRegister}
-        style={styles.button}>
-        <Text style={styles.buttonText}>Đăng ký</Text>
+      <TouchableOpacity
+        onPress={handleRegister}
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        editable={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Đăng ký</Text>
+        )}
       </TouchableOpacity>
 
       {/* Liên kết đăng nhập */}
@@ -106,6 +105,9 @@ const RegisterScreen = props => {
 };
 
 const styles = StyleSheet.create({
+  buttonDisabled: { // <<< THÊM
+    backgroundColor: '#A5D6A7',
+  },
   container: {
     flex: 1,
     padding: 20,

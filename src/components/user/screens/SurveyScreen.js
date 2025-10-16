@@ -14,6 +14,9 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useContext } from 'react';
+import { UserContext } from '../UserContext';
+import { updateProfile } from '../UserHTTP';
 
 const SurveyScreen = ({ navigation }) => {
   const [ten, setTen] = useState('');
@@ -23,6 +26,7 @@ const SurveyScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [chieuCao, setChieuCao] = useState('');
   const [canNang, setCanNang] = useState('');
+  const { refreshUser } = useContext(UserContext);
 
   const onChangeDate = (event, selectedDate) => {
     setShowPicker(false);
@@ -37,7 +41,7 @@ const SurveyScreen = ({ navigation }) => {
       .padStart(2, '0')}/${date.getFullYear()}`;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // 🔍 Kiểm tra tất cả trường bắt buộc
     if (!ten.trim()) {
       Alert.alert('Lỗi', 'Vui lòng nhập họ và tên.');
@@ -86,13 +90,28 @@ const SurveyScreen = ({ navigation }) => {
       return;
     }
 
-    // ✅ Nếu hợp lệ → sang WorkoutScreen
-    Alert.alert('Thành công', 'Thông tin của bạn đã được xác nhận!', [
-      {
-        text: 'OK',
-        onPress: () => navigation.navigate('WorkoutScreen'),
-      },
-    ]);
+    try {
+      // Chuẩn bị dữ liệu để gửi đi
+      const profileData = {
+        name: ten,
+        dob: ngaySinh.toISOString(), // Gửi định dạng chuẩn ISO
+        email: email,
+        height: chieuCao,
+        weight: canNang
+        // Giới tính sẽ cần thêm vào schema backend
+      };
+
+      // Gọi API cập nhật
+      await updateProfile(profileData);
+
+      // Báo cho Context biết để tải lại thông tin user
+      // Vì user mới đã có 'name', AppNavigation sẽ tự động chuyển sang HomeNavigation
+      await refreshUser();
+
+    } catch (error) {
+      Alert.alert('Lỗi', 'Không thể lưu thông tin. Vui lòng thử lại.');
+      console.error(error);
+    }
   };
 
   const androidBehavior = Platform.OS === 'android' ? 'height' : undefined;

@@ -8,12 +8,25 @@ import {
     Image,
     Alert,
     Keyboard,
+    ActivityIndicator
 } from 'react-native';
 
+import { useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { verifyLoginOtp, requestLoginOtp } from '../UserHTTP';
+import { useContext } from 'react';
+import { UserContext } from '../UserContext';
+
 const VerifyScreen = ({ navigation }) => {
+    const route = useRoute(); // <<< THÊM: Để lấy SĐT từ màn hình trước
+    const { phone } = route.params;
     const [code, setCode] = useState(['', '', '', '']);
-    const [countdown, setCountdown] = useState(0);
+    const [countdown, setCountdown] = useState(60);
     const inputsRef = useRef([]);
+    // <<< THÊM: State quản lý loading
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [isResending, setIsResending] = useState(false);
+    const { login } = useContext(UserContext);
 
     // ⏳ Đếm ngược gửi lại mã
     useEffect(() => {
@@ -59,21 +72,51 @@ const VerifyScreen = ({ navigation }) => {
     };
 
     // ✅ Tiếp tục → sang Home
-    const handleContinue = () => {
-        const otp = code.join('').replace(/\D/g, '');
-        if (!/^\d{4}$/.test(otp)) {
+    const handleContinue = async () => {
+        const otp = code.join('');
+        if (otp.length !== 4) {
             Alert.alert('Lỗi', 'Vui lòng nhập đủ 4 chữ số mã xác thực.');
             return;
         }
 
         Keyboard.dismiss();
-        navigation.navigate('UpdateProfile');
+        setIsVerifying(true);
+
+        try {
+            // Gọi API để xác thực
+            const response = await verifyLoginOtp(phone, otp);
+
+            if (response.ok && response.token) {
+                // LƯU TOKEN LẠI! Đây là bước quan trọng nhất
+                // await AsyncStorage.setItem('token', response.token);
+                login(response.token);
+
+                // Alert.alert('Thành công!', 'Đăng nhập thành công.', [
+                //     { text: 'OK', onPress: () => navigation.navigate('Home') } // Chuyển đến màn hình chính
+                // ]);
+            } else {
+                throw new Error(response.message || 'Xác thực thất bại');
+            }
+        } catch (error) {
+            Alert.alert('Đăng nhập thất bại', error.message);
+        } finally {
+            setIsVerifying(false);
+        }
     };
 
-    const handleResendCode = () => {
-        if (countdown > 0) return;
-        Alert.alert('Thành công', 'Mã xác thực đã được gửi lại!');
-        setCountdown(60);
+    const handleResendCode = async () => {
+        if (countdown > 0 || isResending) return;
+
+        setIsResending(true);
+        try {
+            await requestLoginOtp(phone);
+            Alert.alert('Thành công', 'Mã xác thực đã được gửi lại!');
+            setCountdown(60);
+        } catch (error) {
+            Alert.alert('Lỗi', error.message);
+        } finally {
+            setIsResending(false);
+        }
     };
 
     return (
@@ -106,7 +149,7 @@ const VerifyScreen = ({ navigation }) => {
             {/* Nội dung */}
             <View style={styles.content}>
                 <Text style={styles.subtitle}>
-                    Nhập mã gồm 4 chữ số mà FitNexus vừa gửi đến +84 070 123 4567
+                    Nhập mã gồm 4 chữ số mà GymXFit vừa gửi đến {phone}
                 </Text>
 
                 <View style={styles.inputContainer}>
@@ -133,20 +176,24 @@ const VerifyScreen = ({ navigation }) => {
                 </View>
 
                 <TouchableOpacity
-                    style={styles.button}
+                    style={[styles.button, isVerifying && styles.buttonDisabled]}
                     onPress={handleContinue}
-                    activeOpacity={0.85}
+                    disabled={isVerifying}
                 >
-                    <Text style={styles.buttonText}>Tiếp tục</Text>
+                    {isVerifying ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.buttonText}>Tiếp tục</Text>
+                    )}
                 </TouchableOpacity>
 
                 <Text style={styles.resendText}>
                     Chưa nhận được mã?{' '}
                     <Text
-                        style={[styles.resendLink, countdown > 0 && styles.resendDisabled]}
+                        style={[styles.resendLink, (countdown > 0 || isResending) && styles.resendDisabled]}
                         onPress={handleResendCode}
                     >
-                        {countdown > 0 ? `Gửi lại sau ${countdown}s` : 'Gửi lại'}
+                        {isResending ? 'Đang gửi...' : (countdown > 0 ? `Gửi lại sau ${countdown}s` : 'Gửi lại')}
                     </Text>
                 </Text>
             </View>
@@ -155,6 +202,9 @@ const VerifyScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+    buttonDisabled: { // <<< THÊM
+        backgroundColor: '#A5D6A7',
+    },
     container: { flex: 1, padding: 20, backgroundColor: 'white' },
     header: {
         flexDirection: 'row',

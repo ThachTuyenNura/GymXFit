@@ -7,13 +7,17 @@ import {
   StyleSheet,
   Image,
   Alert,
+  ActivityIndicator
 } from 'react-native';
+
+import { requestLoginOtp } from '../UserHTTP';
 
 const LoginScreen = (props) => {
   const { navigation } = props;
   const [mobileNumber, setMobileNumber] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const trimmedNumber = mobileNumber.trim();
 
     // 🟥 Kiểm tra không để trống
@@ -22,14 +26,29 @@ const LoginScreen = (props) => {
       return;
     }
 
-    // 🟧 Kiểm tra có ít nhất 9 chữ số
-    if (trimmedNumber.length < 9) {
-      Alert.alert('Lỗi', 'Số điện thoại phải có ít nhất 9 chữ số.');
+    // 🟧 Kiểm tra có ít nhất 10 chữ số
+    if (trimmedNumber.length !== 10) {
+      Alert.alert('Lỗi', 'Số điện thoại phải có 10 chữ số.');
       return;
     }
 
-    // 🟢 Nếu hợp lệ, chuyển sang WorkoutScreen
-    navigation.navigate('VerifyLoginScreen');
+    setIsLoading(true);
+
+    try {
+      // Gọi API để yêu cầu gửi OTP
+      await requestLoginOtp(trimmedNumber);
+
+      Alert.alert('Thành công', 'Mã OTP đã được gửi đến số điện thoại của bạn.');
+
+      // Nếu thành công, chuyển sang màn hình xác thực và truyền SĐT theo
+      navigation.navigate('VerifyLoginScreen', { phone: trimmedNumber });
+
+    } catch (error) {
+      // Bắt lỗi từ API (ví dụ: SĐT không tồn tại)
+      Alert.alert('Đăng nhập thất bại', error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -50,10 +69,18 @@ const LoginScreen = (props) => {
         keyboardType="phone-pad"
         value={mobileNumber}
         onChangeText={setMobileNumber}
+        editable={!isLoading}
       />
 
-      <TouchableOpacity onPress={handleLogin} style={styles.button}>
-        <Text style={styles.buttonText}>Đăng nhập</Text>
+      <TouchableOpacity onPress={handleLogin}
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Đăng nhập</Text>
+        )}
       </TouchableOpacity>
 
       <Text style={styles.registerText}>
@@ -70,6 +97,9 @@ const LoginScreen = (props) => {
 };
 
 const styles = StyleSheet.create({
+  buttonDisabled: { // <<< THÊM
+    backgroundColor: '#A5D6A7',
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

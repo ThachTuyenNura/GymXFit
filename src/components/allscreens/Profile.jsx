@@ -4,9 +4,12 @@ import {
     StyleSheet,
     TouchableOpacity
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
-const Profile = (props) => {
+import { useContext } from 'react';
+import { UserContext } from '../user/UserContext';
+
+const Profile = ({ navigation }) => {
+    const { logout } = useContext(UserContext);
     return (
         <View style={styles.container}>
             <View style={styles.infoContainer}>
@@ -47,7 +50,10 @@ const Profile = (props) => {
             </View>
 
             <View style={styles.optionContainer}>
-                <TouchableOpacity style={styles.itemOption}>
+                <TouchableOpacity
+                    style={styles.itemOption}
+                    onPress={() => navigation.navigate('UpdateProfile')}
+                >
                     <View style={styles.imageItemContainer}>
                         <Image source={require('../../media/pictures/profile.png')} />
                     </View>
@@ -102,7 +108,10 @@ const Profile = (props) => {
                         <Image style={styles.tintblack} source={require('../../media/pictures/arrowright.png')} />
                     </View>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.itemOption}>
+                <TouchableOpacity
+                    style={styles.itemOption}
+                    onPress={logout}
+                >
                     <View style={styles.imageItemContainer}>
                         <Image source={require('../../media/pictures/logout.png')} />
                     </View>

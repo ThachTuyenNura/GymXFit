@@ -62,7 +62,11 @@ var LESMILLSDATE = [
     },
 ]
 
+import { useContext } from 'react';
+import { UserContext } from '../user/UserContext';
+
 const HomeHeader = ({ data, renderData }) => {
+    const { logout } = useContext(UserContext);
     return (
         <View >
             <View style={styles.headerContainer}>
@@ -71,12 +75,12 @@ const HomeHeader = ({ data, renderData }) => {
                 </View>
 
                 <View style={styles.headerRight}>
-                    <View>
+                    <TouchableOpacity>
                         <Image source={require('../../media/pictures/Search.png')} />
-                    </View>
-                    <View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={logout}>
                         <Image source={require('../../media/pictures/Notifications.png')} />
-                    </View>
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -235,7 +239,7 @@ const HomeHeader = ({ data, renderData }) => {
     )
 }
 
-const home = (props) => {
+const Home = (props) => {
     const [data, setData] = useState(DATA);
     const [lesmillsdata, setLesmillsData] = useState(LESMILLSDATE);
 
@@ -499,7 +503,7 @@ const home = (props) => {
     )
 }
 
-export default home;
+export default Home;
 
 const styles = StyleSheet.create({
     dateContentLesmills: {

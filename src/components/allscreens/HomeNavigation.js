@@ -9,6 +9,8 @@ import Notification from './Notification';
 import Profile from './Profile';
 import Search from './Search';
 import QRScanner from './QRScanner';
+import UpdateProfile from './UpdateProfile';
+import SurveyScreen from '../user/screens/SurveyScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -73,9 +75,9 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
                 <Icon
                     name="star"
                     size={24}
-                    color={state.index === 3 ? '#fff' : '#ddd'}
+                    color={state.index === 2 ? '#fff' : '#ddd'}
                 />
-                <Text style={[styles.tabLabel, state.index === 3 && styles.activeLabel]}>
+                <Text style={[styles.tabLabel, state.index === 2 && styles.activeLabel]}>
                     Yêu thích
                 </Text>
             </TouchableOpacity>
@@ -83,14 +85,14 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             {/* Nút Profile */}
             <TouchableOpacity
                 style={styles.tabButton}
-                onPress={() => navigation.navigate('Profile')}
+                onPress={() => navigation.navigate('UpdateProfile')}
             >
                 <Icon
                     name="headset-mic"
                     size={24}
-                    color={state.index === 4 ? '#fff' : '#ddd'}
+                    color={state.index === 3 ? '#fff' : '#ddd'}
                 />
-                <Text style={[styles.tabLabel, state.index === 4 && styles.activeLabel]}>
+                <Text style={[styles.tabLabel, state.index === 3 && styles.activeLabel]}>
                     Hỗ trợ
                 </Text>
             </TouchableOpacity>
@@ -101,6 +103,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
 const HomeNavigation = () => {
     return (
         <Tab.Navigator
+            initialRouteName='Home'
             tabBar={props => <CustomTabBar {...props} />}
             screenOptions={{
                 headerShown: false,
@@ -109,7 +112,7 @@ const HomeNavigation = () => {
             <Tab.Screen name="Home" component={Home} />
             <Tab.Screen name="Search" component={Search} />
             <Tab.Screen name="Notification" component={Notification} />
-            <Tab.Screen name="Profile" component={Profile} />
+            <Tab.Screen name="UpdateProfile" component={UpdateProfile} />
         </Tab.Navigator>
     );
 };

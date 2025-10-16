@@ -22,7 +22,7 @@ const WorkoutScreen = ({ navigation }) => {
       duration: '50 phút',
       calories: '1300 Kcal',
       exercises: '5 bài tập',
-      image: require('../../../media/pictures/workout1.jpg'),
+      image: require('../../media/pictures/workout1.jpg'),
     },
     {
       id: '2',
@@ -30,7 +30,7 @@ const WorkoutScreen = ({ navigation }) => {
       duration: '12 phút',
       calories: '1250 Kcal',
       exercises: '5 bài tập',
-      image: require('../../../media/pictures/workout1.jpg'),
+      image: require('../../media/pictures/workout1.jpg'),
     },
     {
       id: '3',
@@ -38,7 +38,7 @@ const WorkoutScreen = ({ navigation }) => {
       duration: '30 phút',
       calories: '800 Kcal',
       exercises: '5 bài tập',
-      image: require('../../../media/pictures/workout1.jpg'),
+      image: require('../../media/pictures/workout1.jpg'),
     },
   ];
 
@@ -65,21 +65,21 @@ const WorkoutScreen = ({ navigation }) => {
         <View style={styles.workoutDetailsColumn}>
           <View style={styles.detailItem}>
             <Image
-              source={require('../../../media/pictures/time.png')}
+              source={require('../../media/pictures/time.png')}
               style={styles.detailIcon}
             />
             <Text style={styles.detailText}>{item.duration}</Text>
           </View>
           <View style={styles.detailItem}>
             <Image
-              source={require('../../../media/pictures/calories.png')}
+              source={require('../../media/pictures/calories.png')}
               style={styles.detailIcon}
             />
             <Text style={styles.detailText}>{item.calories}</Text>
           </View>
           <View style={styles.detailItem}>
             <Image
-              source={require('../../../media/pictures/Workout_icon.png')}
+              source={require('../../media/pictures/Workout_icon.png')}
               style={styles.detailIcon}
             />
             <Text style={styles.detailText}>{item.exercises}</Text>
@@ -96,8 +96,8 @@ const WorkoutScreen = ({ navigation }) => {
           <Image
             source={
               favorites[item.id]
-                ? require('../../../media/pictures/yellowstar.png')
-                : require('../../../media/pictures/favorites_white_star.png')
+                ? require('../../media/pictures/yellowstar.png')
+                : require('../../media/pictures/favorites_white_star.png')
             }
             style={styles.itemFavoriteIcon}
           />
@@ -114,7 +114,7 @@ const WorkoutScreen = ({ navigation }) => {
           <View style={styles.leftHeader}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Image
-                source={require('../../../media/pictures/back.png')}
+                source={require('../../media/pictures/back.png')}
                 style={styles.backIcon}
               />
             </TouchableOpacity>
@@ -124,19 +124,19 @@ const WorkoutScreen = ({ navigation }) => {
           <View style={styles.rightHeader}>
             <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)}>
               <Image
-                source={require('../../../media/pictures/Search_icon.png')}
+                source={require('../../media/pictures/Search_icon.png')}
                 style={styles.headerIcon}
               />
             </TouchableOpacity>
             <TouchableOpacity>
               <Image
-                source={require('../../../media/pictures/Notifications_icon.png')}
+                source={require('../../media/pictures/Notifications_icon.png')}
                 style={styles.headerIcon}
               />
             </TouchableOpacity>
             <TouchableOpacity>
               <Image
-                source={require('../../../media/pictures/User_Icon.png')}
+                source={require('../../media/pictures/User_Icon.png')}
                 style={styles.headerIcon}
               />
             </TouchableOpacity>
@@ -172,7 +172,7 @@ const WorkoutScreen = ({ navigation }) => {
       <View style={styles.featuredWrapper}>
         <View style={styles.featuredCard}>
           <Image
-            source={require('../../../media/pictures/workout1.jpg')}
+            source={require('../../media/pictures/workout1.jpg')}
             style={styles.featuredImage}
           />
           <View style={styles.badgeWrap}>
@@ -183,21 +183,21 @@ const WorkoutScreen = ({ navigation }) => {
             <View style={styles.featuredDetails}>
               <View style={styles.detailItem}>
                 <Image
-                  source={require('../../../media/pictures/time.png')}
+                  source={require('../../media/pictures/time.png')}
                   style={styles.detailIconWhite}
                 />
                 <Text style={styles.featuredDetailText}>60 phút</Text>
               </View>
               <View style={styles.detailItem}>
                 <Image
-                  source={require('../../../media/pictures/calories.png')}
+                  source={require('../../media/pictures/calories.png')}
                   style={styles.detailIconWhite}
                 />
                 <Text style={styles.featuredDetailText}>120 Kcal</Text>
               </View>
               <View style={styles.detailItem}>
                 <Image
-                  source={require('../../../media/pictures/Workout_icon.png')}
+                  source={require('../../media/pictures/Workout_icon.png')}
                   style={styles.detailIconWhite}
                 />
                 <Text style={styles.featuredDetailText}>5 bài tập</Text>
@@ -212,8 +212,8 @@ const WorkoutScreen = ({ navigation }) => {
               <Image
                 source={
                   favorites['featured']
-                    ? require('../../../media/pictures/yellowstar.png')
-                    : require('../../../media/pictures/favorites_white_star.png')
+                    ? require('../../media/pictures/yellowstar.png')
+                    : require('../../media/pictures/favorites_white_star.png')
                 }
                 style={styles.featuredFavoriteIcon}
               />
@@ -245,7 +245,6 @@ const styles = StyleSheet.create({
   },
   innerPadding: { paddingHorizontal: 18 },
 
-  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -258,7 +257,6 @@ const styles = StyleSheet.create({
   headerIcon: { width: 26, height: 26, marginLeft: 14, resizeMode: 'contain' },
   title: { fontSize: 22, fontWeight: '700', color: '#111' },
 
-  // Search
   searchInput: {
     backgroundColor: '#f3f3f3',
     borderRadius: 10,
@@ -271,7 +269,6 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
 
-  // Level buttons
   levelContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -291,7 +288,6 @@ const styles = StyleSheet.create({
   },
   levelText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
-  // Banner
   featuredWrapper: {
     backgroundColor: '#20B24A',
     padding: 12,
@@ -354,7 +350,6 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
 
-  // Workout list
   unlockTitle: {
     fontSize: 18,
     fontWeight: '700',

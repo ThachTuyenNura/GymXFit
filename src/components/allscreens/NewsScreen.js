@@ -13,7 +13,7 @@ const newsData = [
     id: 1,
     title: 'Tập luyện đúng cách giúp cải thiện sức khỏe và vóc dáng',
     date: '17/09/2025',
-    image: require('../../../media/pictures/workout1.jpg'),
+    image: require('../../media/pictures/back.png'),
     description:
       'Cùng tìm hiểu bí quyết tập luyện hiệu quả giúp bạn đạt được mục tiêu nhanh hơn.',
   },
@@ -21,7 +21,7 @@ const newsData = [
     id: 2,
     title: 'Chế độ dinh dưỡng hợp lý cho người tập gym',
     date: '10/08/2025',
-    image: require('../../../media/pictures/workout1.jpg'),
+    image: require('../../media/pictures/back.png'),
     description:
       'Khám phá thực đơn giàu dinh dưỡng giúp duy trì năng lượng và phục hồi cơ bắp tốt hơn.',
   },
@@ -29,7 +29,7 @@ const newsData = [
     id: 3,
     title: 'Tập nhóm – bí quyết giữ động lực mỗi ngày',
     date: '03/07/2025',
-    image: require('../../../media/pictures/workout1.jpg'),
+    image: require('../../media/pictures/back.png'),
     description:
       'Tập luyện cùng bạn bè giúp bạn duy trì cảm hứng và kết quả lâu dài.',
   },
@@ -37,7 +37,7 @@ const newsData = [
     id: 4,
     title: 'Bài tập cardio đốt cháy calo hiệu quả nhất',
     date: '22/06/2025',
-    image: require('../../../media/pictures/workout1.jpg'),
+    image: require('../../media/pictures/back.png'),
     description:
       'Những bài tập giúp tăng cường thể lực và hỗ trợ giảm mỡ nhanh chóng.',
   },
@@ -54,7 +54,7 @@ const NewsScreen = ({ navigation }) => {
           activeOpacity={0.7}
         >
           <Image
-            source={require('../../../media/pictures/back.png')}
+            source={require('../../media/pictures/back.png')}
             style={styles.backIcon}
           />
         </TouchableOpacity>

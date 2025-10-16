@@ -33,7 +33,7 @@ const WorkoutVideo = ({ navigation }) => {
             onPress={() => navigation.goBack()}
           >
             <Image
-              source={require('../../../media/pictures/back.png')}
+              source={require('../../media/pictures/back.png')}
               style={styles.backIcon}
             />
           </TouchableOpacity>
@@ -49,7 +49,7 @@ const WorkoutVideo = ({ navigation }) => {
               onPress={() => setShowSearch(!showSearch)}
             >
               <Image
-                source={require('../../../media/pictures/Search_icon.png')}
+                source={require('../../media/pictures/Search_icon.png')}
                 style={styles.icon}
               />
             </TouchableOpacity>
@@ -57,7 +57,7 @@ const WorkoutVideo = ({ navigation }) => {
             {/* Nút thông báo */}
             <TouchableOpacity activeOpacity={0.8}>
               <Image
-                source={require('../../../media/pictures/Notifications_icon.png')}
+                source={require('../../media/pictures/Notifications_icon.png')}
                 style={styles.icon}
               />
             </TouchableOpacity>
@@ -65,7 +65,7 @@ const WorkoutVideo = ({ navigation }) => {
             {/* Nút user */}
             <TouchableOpacity activeOpacity={0.8}>
               <Image
-                source={require('../../../media/pictures/User_Icon.png')}
+                source={require('../../media/pictures/User_Icon.png')}
                 style={styles.icon}
               />
             </TouchableOpacity>
@@ -90,14 +90,14 @@ const WorkoutVideo = ({ navigation }) => {
         <View style={styles.featuredWrapper}>
           <View style={styles.featuredCard}>
             <Image
-              source={require('../../../media/pictures/workout1.jpg')}
+              source={require('../../media/pictures/workout1.jpg')}
               style={styles.workoutImage}
             />
 
             {/* Nút Play (chỉ nhấn được, không hành động) */}
             <TouchableOpacity activeOpacity={0.6} style={styles.playButton}>
               <Image
-                source={require('../../../media/pictures/Play_Button.png')}
+                source={require('../../media/pictures/Play_Button.png')}
                 style={styles.playIcon}
               />
             </TouchableOpacity>
@@ -111,8 +111,8 @@ const WorkoutVideo = ({ navigation }) => {
               <Image
                 source={
                   isFavorite
-                    ? require('../../../media/pictures/yellowstar.png')
-                    : require('../../../media/pictures/favorites_white_star.png')
+                    ? require('../../media/pictures/yellowstar.png')
+                    : require('../../media/pictures/favorites_white_star.png')
                 }
                 style={styles.favoriteIcon}
               />
@@ -130,7 +130,7 @@ const WorkoutVideo = ({ navigation }) => {
             <View style={styles.infoRowWrapper}>
               <View style={styles.infoItem}>
                 <Image
-                  source={require('../../../media/pictures/time.png')}
+                  source={require('../../media/pictures/time.png')}
                   style={styles.smallIcon}
                 />
                 <Text style={styles.infoItemText}>30 giây</Text>
@@ -138,7 +138,7 @@ const WorkoutVideo = ({ navigation }) => {
 
               <View style={styles.infoItem}>
                 <Image
-                  source={require('../../../media/pictures/calories.png')}
+                  source={require('../../media/pictures/calories.png')}
                   style={styles.smallIcon}
                 />
                 <Text style={styles.infoItemText}>3 lần</Text>
@@ -146,7 +146,7 @@ const WorkoutVideo = ({ navigation }) => {
 
               <View style={styles.infoItem}>
                 <Image
-                  source={require('../../../media/pictures/Workout_icon.png')}
+                  source={require('../../media/pictures/Workout_icon.png')}
                   style={styles.smallIcon}
                 />
                 <Text style={styles.infoItemText}>Nâng cao</Text>

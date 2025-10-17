@@ -91,6 +91,11 @@ const UpdateProfile = ({ navigation }) => {
                 } finally {
                     setIsUploading(false);
                 }
+                // Kiểm tra xem file có đủ thông tin cần thiết không
+                if (!file.uri || !file.type) {
+                    Alert.alert('Lỗi', 'Ảnh được chọn không hợp lệ.');
+                    return;
+                }
             }
         });
     };

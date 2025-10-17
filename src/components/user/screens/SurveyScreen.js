@@ -27,7 +27,6 @@ const SurveyScreen = ({ navigation }) => {
   const [chieuCao, setChieuCao] = useState('');
   const [canNang, setCanNang] = useState('');
   const { refreshUser } = useContext(UserContext);
-  const { logout } = useContext(UserContext);
 
   const onChangeDate = (event, selectedDate) => {
     setShowPicker(false);

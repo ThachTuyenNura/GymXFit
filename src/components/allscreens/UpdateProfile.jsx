@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
     Text, Image, View,
     StyleSheet,
@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { getProfile, updateProfile } from '../user/UserHTTP';
+import { updateProfile, updateAvatar, requestDeleteAccount, confirmDeleteAccount } from '../user/UserHTTP';
+import { UserContext } from '../user/UserContext';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 // Một hàm nhỏ để định dạng ngày tháng cho dễ nhìn
 const formatDateForDisplay = (dateString) => {
@@ -29,20 +31,34 @@ const formatDateForDisplay = (dateString) => {
 const UpdateProfile = ({ navigation }) => {
     const androidBehavior = Platform.OS === 'android' ? 'height' : undefined;
     const [showPicker, setShowPicker] = useState(false);
+    const { user, refreshUser, logout } = useContext(UserContext);
     // --- State để lưu trữ thông tin người dùng ---
-    const [profile, setProfile] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        dob: '',
-        weight: '',
-        height: '',
-        avatarUrl: null
-    });
-
+    const [profileData, setProfileData] = useState({ name: '', email: '', phone: '', dob: '', weight: '', height: '', gender: '' });
+    const [avatarSource, setAvatarSource] = useState(require('../../media/pictures/avt.png'));
     // --- State để quản lý trạng thái loading ---
     const [isFetching, setIsFetching] = useState(true); // Khi tải dữ liệu lần đầu
     const [isUpdating, setIsUpdating] = useState(false); // Khi nhấn nút "Lưu"
+    const [isUploading, setIsUploading] = useState(false);
+
+    // Tự động điền form khi có dữ liệu user từ context
+    useEffect(() => {
+        if (user) {
+            setProfileData({
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                dob: formatDateForDisplay(user.dob) || '',
+                weight: user.weight ? String(user.weight) : '',
+                height: user.height ? String(user.height) : '',
+                gender: user.gender || '',
+            });
+            // Cập nhật avatar từ user.avatar (đây là URL)
+            if (user.avatar) {
+                setAvatarSource({ uri: user.avatar });
+            }
+        }
+        setIsFetching(false);
+    }, [user]); // Chạy lại mỗi khi đối tượng user trong context thay đổi
 
     const onChangeDate = (event, selectedDate) => {
         // Luôn ẩn picker sau khi chọn xong hoặc hủy
@@ -54,63 +70,108 @@ const UpdateProfile = ({ navigation }) => {
         }
     };
 
-    // --- Tải thông tin người dùng khi màn hình được mở ---
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const response = await getProfile();
-                if (response.ok && response.user) {
-                    const { user } = response;
-                    setProfile({
-                        name: user.name || '',
-                        email: user.email || '',
-                        phone: user.phone || '',
-                        dob: formatDateForDisplay(user.dob) || '', // Định dạng lại ngày
-                        weight: user.weight ? String(user.weight) : '', // Chuyển sang string
-                        height: user.height ? String(user.height) : '', // Chuyển sang string
-                        avatarUrl: user.avatarUrl
-                    });
-                }
-            } catch (error) {
-                Alert.alert('Lỗi tải dữ liệu', error.message);
-            } finally {
-                setIsFetching(false);
+    // --- Hàm xử lý chọn và upload avatar ---
+    const handleAvatarChange = () => {
+        launchImageLibrary({ mediaType: 'photo', quality: 0.5 }, async (response) => {
+            if (response.didCancel) return;
+            if (response.errorCode) {
+                return Alert.alert('Lỗi', `Lỗi chọn ảnh: ${response.errorMessage}`);
             }
-        };
-
-        fetchProfile();
-    }, []); // Mảng rỗng đảm bảo chỉ chạy 1 lần
+            if (response.assets && response.assets.length > 0) {
+                const file = response.assets[0];
+                setAvatarSource({ uri: file.uri }); // Cập nhật UI ngay lập tức
+                setIsUploading(true);
+                try {
+                    await updateAvatar(file);
+                    Alert.alert('Thành công', 'Cập nhật ảnh đại diện thành công!');
+                    await refreshUser(); // Tải lại toàn bộ profile để đồng bộ
+                } catch (error) {
+                    Alert.alert('Lỗi', error.message);
+                    setAvatarSource(user.avatar ? { uri: user.avatar } : require('../../media/pictures/avt.png')); // Hoàn tác ảnh nếu lỗi
+                } finally {
+                    setIsUploading(false);
+                }
+            }
+        });
+    };
 
     // --- Hàm xử lý khi nhấn nút "Lưu thông tin" ---
     const handleUpdateProfile = async () => {
         setIsUpdating(true);
         try {
-            // Chỉ gửi những trường có giá trị, backend của bạn rất tốt trong việc xử lý này
+            // --- BƯỚC QUAN TRỌNG: Chuẩn bị dữ liệu đúng định dạng ---
             const updates = {
-                name: profile.name,
-                email: profile.email,
-                dob: profile.dob,
-                weight: profile.weight,
-                height: profile.height,
+                name: profileData.name,
+                email: profileData.email,
+                gender: profileData.gender,
             };
+
+            // 1. Chỉ gửi `dob` nếu nó tồn tại và chuyển sang định dạng YYYY-MM-DD
+            if (profileData.dob) {
+                const parts = profileData.dob.split('/'); // Tách chuỗi "dd/mm/yyyy"
+                if (parts.length === 3) {
+                    updates.dob = `${parts[2]}-${parts[1]}-${parts[0]}`; // Ghép lại thành "yyyy-mm-dd"
+                }
+            }
+
+            // 2. Chỉ gửi `weight` nếu nó là một con số hợp lệ
+            if (profileData.weight && !isNaN(profileData.weight)) {
+                updates.weight = Number(profileData.weight);
+            }
+
+            // 3. Chỉ gửi `height` nếu nó là một con số hợp lệ
+            if (profileData.height && !isNaN(profileData.height)) {
+                updates.height = Number(profileData.height);
+            }
+
+            console.log('Đang gửi dữ liệu cập nhật:', updates); // Dòng này để debug
 
             const response = await updateProfile(updates);
             Alert.alert('Thành công', response.message);
-
-            // Cập nhật lại header với tên mới (tùy chọn)
-            // (Bạn có thể dùng Context/Redux để làm việc này tốt hơn)
+            await refreshUser(); // Làm mới thông tin sau khi cập nhật thành công
 
         } catch (error) {
-            Alert.alert('Cập nhật thất bại', error.message);
+            // Hiển thị lỗi cụ thể từ server
+            const errorMessage = error.response?.data?.message || error.message;
+            Alert.alert('Cập nhật thất bại', errorMessage);
         } finally {
             setIsUpdating(false);
         }
     };
 
-    // Hàm để cập nhật state khi người dùng nhập liệu
-    const handleInputChange = (field, value) => {
-        setProfile(prev => ({ ...prev, [field]: value }));
+    // --- Hàm xử lý xóa tài khoản ---
+    const handleDeleteRequest = () => {
+        Alert.alert(
+            "Xác nhận xóa tài khoản",
+            "Hành động này không thể hoàn tác. Một mã OTP sẽ được gửi đến số điện thoại của bạn để xác nhận.",
+            [
+                { text: "Hủy", style: 'cancel' },
+                {
+                    text: "Xác nhận", style: 'destructive', onPress: async () => {
+                        try {
+                            await requestDeleteAccount();
+                            Alert.prompt(
+                                "Nhập mã OTP",
+                                "Vui lòng nhập mã OTP bạn vừa nhận được để xóa tài khoản vĩnh viễn.",
+                                async (otp) => {
+                                    if (otp) {
+                                        try {
+                                            await confirmDeleteAccount(otp);
+                                            Alert.alert("Thành công", "Tài khoản của bạn đã được xóa.");
+                                            logout(); // Đăng xuất và đưa về màn hình login
+                                        } catch (e) { Alert.alert("Lỗi", e.message); }
+                                    }
+                                }
+                            );
+                        } catch (e) { Alert.alert("Lỗi", e.message); }
+                    }
+                }
+            ]
+        );
     };
+
+    // Hàm để cập nhật state khi người dùng nhập liệu
+    const handleInputChange = (field, value) => setProfileData(prev => ({ ...prev, [field]: value }));
 
     // Màn hình loading trong khi chờ tải dữ liệu
     if (isFetching) {
@@ -121,8 +182,8 @@ const UpdateProfile = ({ navigation }) => {
         );
     }
 
-    const dobAsDateObject = profile.dob
-        ? new Date(profile.dob.split('/').reverse().join('-'))
+    const dobAsDateObject = profileData.dob
+        ? new Date(profileData.dob.split('/').reverse().join('-'))
         : new Date();
     // Kiểm tra xem ngày có hợp lệ không, nếu không thì dùng ngày hiện tại
     if (isNaN(dobAsDateObject.getTime())) {
@@ -146,36 +207,41 @@ const UpdateProfile = ({ navigation }) => {
                 </View>
                 <View style={styles.avtContainer}>
                     <View style={styles.imageContainer}>
-                        <Image style={styles.imageAvt}
-                            source={profile.avatarUrl ? { uri: profile.avatarUrl } : require('../../media/pictures/avt.png')} />
-                        <TouchableOpacity style={styles.editContainer}>
-                            <Image source={require('../../media/pictures/edit.png')} />
+                        <Image style={styles.imageAvt} source={avatarSource} />
+                        <TouchableOpacity
+                            style={styles.editContainer}
+                            onPress={handleAvatarChange}
+                        >
+                            {isUploading
+                                ? <ActivityIndicator size="small" color="#000" />
+                                : <Image source={require('../../media/pictures/edit.png')}
+                                />}
                         </TouchableOpacity>
                     </View>
                     <View>
-                        <Text style={styles.titltInfo}>{profile.name || 'Chưa cập nhật'}</Text>
+                        <Text style={styles.titltInfo}>{profileData.name || 'Chưa cập nhật'}</Text>
                     </View>
                     <View>
-                        <Text style={styles.mailAvt}>{profile.email || 'Chưa cập nhật'}</Text>
+                        <Text style={styles.mailAvt}>{profileData.email || 'Chưa cập nhật'}</Text>
                     </View>
                     <View>
-                        <Text style={styles.bold}>Ngày sinh: <Text style={styles.birthdayAvt}>{profile.dob || 'Chưa cập nhật'}</Text></Text>
+                        <Text style={styles.bold}>Ngày sinh: <Text style={styles.birthdayAvt}>{profileData.dob || 'Chưa cập nhật'}</Text></Text>
                     </View>
                 </View>
 
                 <View style={styles.infoBodyContainer}>
                     <View>
-                        <Text style={styles.textInfoBody}>{profile.weight || '--'} <Text>Kg</Text></Text>
+                        <Text style={styles.textInfoBody}>{profileData.weight || '--'} <Text>Kg</Text></Text>
                         <Text style={styles.textInfoBody}>Cân nặng</Text>
                     </View>
                     <View style={styles.duongke}></View>
                     <View>
-                        <Text style={styles.textInfoBody}>{profile.dob ? new Date().getFullYear() - new Date(profile.dob.split('/').reverse().join('-')).getFullYear() : '--'}</Text>
+                        <Text style={styles.textInfoBody}>{profileData.dob ? new Date().getFullYear() - new Date(profileData.dob.split('/').reverse().join('-')).getFullYear() : '--'}</Text>
                         <Text style={styles.textInfoBody}>Tuổi</Text>
                     </View>
                     <View style={styles.duongke}></View>
                     <View>
-                        <Text style={styles.textInfoBody}>{profile.height || '--'} <Text>CM</Text></Text>
+                        <Text style={styles.textInfoBody}>{profileData.height || '--'} <Text>CM</Text></Text>
                         <Text style={styles.textInfoBody}>Chiều cao</Text>
                     </View>
                 </View>
@@ -191,7 +257,7 @@ const UpdateProfile = ({ navigation }) => {
                             <Text style={styles.textItem}>Họ tên</Text>
                             <TextInput style={styles.textInputItem}
                                 placeholder='Nhập họ tên'
-                                value={profile.name}
+                                value={profileData.name}
                                 onChangeText={(text) => handleInputChange('name', text)}
                             />
                         </View>
@@ -199,7 +265,7 @@ const UpdateProfile = ({ navigation }) => {
                             <Text style={styles.textItem}>Email</Text>
                             <TextInput style={styles.textInputItem}
                                 placeholder='Nhập email'
-                                value={profile.email}
+                                value={profileData.email}
                                 onChangeText={(text) => handleInputChange('email', text)}
                                 keyboardType='email-address'
                                 autoCapitalize='none'
@@ -208,7 +274,7 @@ const UpdateProfile = ({ navigation }) => {
                         <View style={styles.itemInput}>
                             <Text style={styles.textItem}>Số điện thoại</Text>
                             <TextInput style={[styles.textInputItem, styles.textInputDisabled]}
-                                value={profile.phone}
+                                value={profileData.phone}
                                 editable={false} // Không cho phép sửa SĐT
                             />
                         </View>
@@ -217,7 +283,7 @@ const UpdateProfile = ({ navigation }) => {
                             <TouchableOpacity onPress={() => setShowPicker(true)} >
                                 <TextInput style={styles.textInputItem}
                                     placeholder='dd/mm/yyyy'
-                                    value={profile.dob}
+                                    value={profileData.dob}
                                     editable={false}
                                 />
                             </TouchableOpacity>
@@ -230,11 +296,36 @@ const UpdateProfile = ({ navigation }) => {
                                 />
                             )}
                         </View>
+
+                        <View style={styles.itemInput}>
+                            <Text style={styles.textItem}>Giới tính</Text>
+                            <View style={styles.genderContainer}>
+                                <TouchableOpacity style={styles.genderOption} onPress={() => handleInputChange('gender', 'male')}>
+                                    <View style={[styles.radioOuter, profileData.gender === 'male' && styles.radioSelected]}>
+                                        {profileData.gender === 'male' && <View style={styles.radioInner} />}
+                                    </View>
+                                    <Text style={styles.genderText}>Nam</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.genderOption} onPress={() => handleInputChange('gender', 'female')}>
+                                    <View style={[styles.radioOuter, profileData.gender === 'female' && styles.radioSelected]}>
+                                        {profileData.gender === 'female' && <View style={styles.radioInner} />}
+                                    </View>
+                                    <Text style={styles.genderText}>Nữ</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.genderOption} onPress={() => handleInputChange('gender', 'other')}>
+                                    <View style={[styles.radioOuter, profileData.gender === 'other' && styles.radioSelected]}>
+                                        {profileData.gender === 'other' && <View style={styles.radioInner} />}
+                                    </View>
+                                    <Text style={styles.genderText}>Khác</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
                         <View style={styles.itemInput}>
                             <Text style={styles.textItem}>Cân nặng</Text>
                             <TextInput style={styles.textInputItem}
                                 placeholder='Nhập cân nặng'
-                                value={profile.weight}
+                                value={profileData.weight}
                                 onChangeText={(text) => handleInputChange('weight', text)}
                                 keyboardType='numeric'
                             />
@@ -243,7 +334,7 @@ const UpdateProfile = ({ navigation }) => {
                             <Text style={styles.textItem}>Chiều cao</Text>
                             <TextInput style={styles.textInputItem}
                                 placeholder='Nhập chiều cao'
-                                value={profile.height}
+                                value={profileData.height}
                                 onChangeText={(text) => handleInputChange('height', text)}
                                 keyboardType='numeric'
                             />
@@ -267,6 +358,39 @@ const UpdateProfile = ({ navigation }) => {
 export default UpdateProfile;
 
 const styles = StyleSheet.create({
+    genderContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: 10
+    },
+    genderOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 40
+    },
+    radioOuter: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 2,
+        borderColor: '#30C451',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 8,
+    },
+    radioInner: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#30C451'
+    },
+    radioSelected: {
+        borderColor: '#30C451'
+    },
+    genderText: {
+        fontSize: 16,
+        color: '#000'
+    },
     button: {
         color: '#fff',
         backgroundColor: '#30C451',

@@ -27,6 +27,7 @@ const SurveyScreen = ({ navigation }) => {
   const [chieuCao, setChieuCao] = useState('');
   const [canNang, setCanNang] = useState('');
   const { refreshUser } = useContext(UserContext);
+  const { logout } = useContext(UserContext);
 
   const onChangeDate = (event, selectedDate) => {
     setShowPicker(false);
@@ -96,9 +97,9 @@ const SurveyScreen = ({ navigation }) => {
         name: ten,
         dob: ngaySinh.toISOString(), // Gửi định dạng chuẩn ISO
         email: email,
-        height: chieuCao,
-        weight: canNang
-        // Giới tính sẽ cần thêm vào schema backend
+        gender: gioiTinh,
+        height: Number(chieuCao),
+        weight: Number(canNang)
       };
 
       // Gọi API cập nhật
@@ -172,32 +173,47 @@ const SurveyScreen = ({ navigation }) => {
           <View style={styles.genderContainer}>
             <TouchableOpacity
               style={styles.genderOption}
-              onPress={() => setGioiTinh('Nam')}
+              onPress={() => setGioiTinh('male')}
             >
               <View
                 style={[
                   styles.radioOuter,
-                  gioiTinh === 'Nam' && styles.radioSelected,
+                  gioiTinh === 'male' && styles.radioSelected,
                 ]}
               >
-                {gioiTinh === 'Nam' && <View style={styles.radioInner} />}
+                {gioiTinh === 'male' && <View style={styles.radioInner} />}
               </View>
               <Text style={styles.genderText}>Nam</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.genderOption}
-              onPress={() => setGioiTinh('Nữ')}
+              onPress={() => setGioiTinh('female')}
             >
               <View
                 style={[
                   styles.radioOuter,
-                  gioiTinh === 'Nữ' && styles.radioSelected,
+                  gioiTinh === 'female' && styles.radioSelected,
                 ]}
               >
-                {gioiTinh === 'Nữ' && <View style={styles.radioInner} />}
+                {gioiTinh === 'female' && <View style={styles.radioInner} />}
               </View>
               <Text style={styles.genderText}>Nữ</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.genderOption}
+              onPress={() => setGioiTinh('other')}
+            >
+              <View
+                style={[
+                  styles.radioOuter,
+                  gioiTinh === 'other' && styles.radioSelected,
+                ]}
+              >
+                {gioiTinh === 'other' && <View style={styles.radioInner} />}
+              </View>
+              <Text style={styles.genderText}>Khác</Text>
             </TouchableOpacity>
           </View>
 

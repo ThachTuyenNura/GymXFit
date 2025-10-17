@@ -42,7 +42,7 @@ const UserNavigation = () => {
       <Stack.Screen name="WorkoutScreen" component={WorkoutScreen} />
       <Stack.Screen name="WorkoutScreen2" component={WorkoutScreen2} />
       <Stack.Screen name="WorkoutVideo" component={WorkoutVideo} />
-      {/* <Stack.Screen name="UpdateProfile" component={UpdateProfile} /> */}
+      <Stack.Screen name="UpdateProfile" component={UpdateProfile} />
     </Stack.Navigator>
   );
 };

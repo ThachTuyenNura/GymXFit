@@ -1,9 +1,8 @@
 import AxiosInstance from "../../http/AxiosInstance";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const requestOTP = async (phoneNumber) => {
     try {
-        console.log('Bắt đầu gửi yêu cầu OTP cho số:', phoneNumber);
-        // Gọi đến Axios instance đã được cấu hình
         const response = await AxiosInstance().post('/api/auth/register', {
             phone: phoneNumber,
         });
@@ -17,12 +16,10 @@ export const requestOTP = async (phoneNumber) => {
 
 export async function verifyOtp(phoneNumber, code) {
     try {
-        // gọi API
         const response = await AxiosInstance().post('/api/auth/verify-register', {
             phone: phoneNumber,
             code: code,
         });
-        // Nếu thành công, trả về dữ liệu
         return response;
     } catch (error) {
         // Nếu thất bại, lấy thông báo lỗi và NÉM nó ra
@@ -33,15 +30,12 @@ export async function verifyOtp(phoneNumber, code) {
 
 export async function requestLoginOtp(phoneNumber) {
     try {
-        console.log('Bắt đầu gửi yêu cầu OTP đăng nhập cho số:', phoneNumber);
-        // Gọi đến endpoint /api/auth/login
         const response = await AxiosInstance().post('/api/auth/login', {
             phone: phoneNumber,
         });
         return response;
     } catch (error) {
         const errorMessage = error.response?.data?.error || 'Số điện thoại chưa được đăng ký.';
-        console.error('Lỗi khi yêu cầu OTP đăng nhập:', error.response?.data || error.message);
         throw new Error(errorMessage);
     }
 }
@@ -56,7 +50,6 @@ export async function verifyLoginOtp(phoneNumber, code) {
         return response;
     } catch (error) {
         const errorMessage = error.response?.data?.message || 'Mã OTP không hợp lệ.';
-        console.error('Lỗi khi xác thực OTP đăng nhập:', error.response?.data || error.message);
         throw new Error(errorMessage);
     }
 }
@@ -73,10 +66,56 @@ export async function getProfile() {
 
 export async function updateProfile(profileData) {
     try {
+        // ⚠️ Lưu ý: Hàm này không còn dùng để cập nhật avatar
         const response = await AxiosInstance().put('/api/user/profile', profileData);
         return response;
     } catch (error) {
         const errorMessage = error.response?.data?.message || 'Cập nhật thông tin thất bại.';
+        throw new Error(errorMessage);
+    }
+}
+
+export async function updateAvatar(file) {
+    // để gửi file thì cần formData
+    const formData = new FormData();
+    formData.append('avatar', {
+        uri: file.uri,
+        type: file.type,
+        name: file.fileName || 'avatar.jpg'
+    })
+
+    try {
+        // Khi gửi FormData, cần set header 'Content-Type' đặc biệt
+        const token = await AsyncStorage.getItem('token');
+        const response = await AxiosInstance.put('/api/user/avatar', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return response;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Tải ảnh lên thất bại';
+        throw new Error(errorMessage);
+    }
+}
+
+export async function requestDeleteAccount() {
+    try {
+        const response = await AxiosInstance.post('/api/user/delete-account/request');
+        return response;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Yêu cầu xóa tài khoản thất bại';
+        throw new Error(errorMessage);
+    }
+}
+
+export async function confirmDeleteAccount(code) {
+    try {
+        const response = await AxiosInstance.post('/api/user/delete-account/confirm', { code });
+        return response;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Xác nhận xóa tài khoản thất bại';
         throw new Error(errorMessage);
     }
 }

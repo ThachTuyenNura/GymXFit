@@ -42,6 +42,7 @@ const UpdateProfile = ({ navigation }) => {
 
     // Tự động điền form khi có dữ liệu user từ context
     useEffect(() => {
+        console.log('UpdateProfile useEffect: User nhận từ context:', JSON.stringify(user, null, 2));
         if (user) {
             setProfileData({
                 name: user.name || '',
@@ -54,8 +55,16 @@ const UpdateProfile = ({ navigation }) => {
             });
             // Cập nhật avatar từ user.avatar (đây là URL)
             if (user.avatar) {
-                setAvatarSource({ uri: user.avatar });
+                const imageUrlWithTimestamp = `${user.avatar}?timestamp=${Date.now()}`;
+                console.log('UpdateProfile useEffect: Đang gán avatarSource URI (với timestamp):', imageUrlWithTimestamp);
+                setAvatarSource({ uri: imageUrlWithTimestamp });
+            } else {
+                console.log('UpdateProfile useEffect: User không có avatar, dùng ảnh mặc định.');
+                setAvatarSource(require('../../media/pictures/avt.png')); // Ảnh mặc định
             }
+        } else {
+            console.log('UpdateProfile useEffect: User là null, dùng ảnh mặc định.');
+            setAvatarSource(require('../../media/pictures/avt.png'));
         }
         setIsFetching(false);
     }, [user]); // Chạy lại mỗi khi đối tượng user trong context thay đổi
@@ -73,28 +82,38 @@ const UpdateProfile = ({ navigation }) => {
     // --- Hàm xử lý chọn và upload avatar ---
     const handleAvatarChange = () => {
         launchImageLibrary({ mediaType: 'photo', quality: 0.5 }, async (response) => {
-            if (response.didCancel) return;
+            // trường hợp 1: người dùng ấn hủy
+            if (response.didCancel) return; // không làm gì cả 
+            // trường hợp 2: có lỗi xảy ra khi chọn ảnh
             if (response.errorCode) {
-                return Alert.alert('Lỗi', `Lỗi chọn ảnh: ${response.errorMessage}`);
+                Alert.alert('Lỗi', `Lỗi chọn ảnh: ${response.errorMessage}`);
+                return;
             }
+            // trường hợp 3: chọn ảnh thành công
             if (response.assets && response.assets.length > 0) {
                 const file = response.assets[0];
+                // Kiểm tra xem có lấy được thông tin cần thiết không
+                if (!file.uri || !file.type) {
+                    Alert.alert('Lỗi', 'Không thể lấy thông tin ảnh đã chọn.');
+                    return;
+                }
                 setAvatarSource({ uri: file.uri }); // Cập nhật UI ngay lập tức
                 setIsUploading(true);
+                // Chuẩn bị file để gửi đi
+                const fileToUpload = {
+                    uri: file.uri,
+                    type: file.type,
+                    name: file.fileName || `avatar_${Date.now()}.jpg`, // Tạo tên file nếu không có
+                };
                 try {
-                    await updateAvatar(file);
+                    await updateAvatar(fileToUpload);
                     Alert.alert('Thành công', 'Cập nhật ảnh đại diện thành công!');
                     await refreshUser(); // Tải lại toàn bộ profile để đồng bộ
                 } catch (error) {
                     Alert.alert('Lỗi', error.message);
-                    setAvatarSource(user.avatar ? { uri: user.avatar } : require('../../media/pictures/avt.png')); // Hoàn tác ảnh nếu lỗi
+                    setAvatarSource(user?.avatar ? { uri: user.avatar } : require('../../media/pictures/avt.png')); // Hoàn tác ảnh nếu lỗi
                 } finally {
                     setIsUploading(false);
-                }
-                // Kiểm tra xem file có đủ thông tin cần thiết không
-                if (!file.uri || !file.type) {
-                    Alert.alert('Lỗi', 'Ảnh được chọn không hợp lệ.');
-                    return;
                 }
             }
         });
@@ -212,7 +231,10 @@ const UpdateProfile = ({ navigation }) => {
                 </View>
                 <View style={styles.avtContainer}>
                     <View style={styles.imageContainer}>
-                        <Image style={styles.imageAvt} source={avatarSource} />
+                        <Image
+                            // key={avatarSource.uri || Date.now()} // Dùng uri làm key, hoặc timestamp nếu uri null
+                            style={styles.imageAvt}
+                            source={avatarSource} />
                         <TouchableOpacity
                             style={styles.editContainer}
                             onPress={handleAvatarChange}
@@ -497,6 +519,8 @@ const styles = StyleSheet.create({
         end: 5
     },
     imageAvt: {
+        width: 125,
+        height: 125,
         marginVertical: 4,
         borderRadius: 100
     },

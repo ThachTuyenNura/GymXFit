@@ -1,5 +1,4 @@
-// screens/WorkoutVideo.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,20 +8,69 @@ import {
   ScrollView,
   TextInput,
   Platform,
+  ActivityIndicator
 } from 'react-native';
 
+import Video from 'react-native-video';
+import { useRoute } from '@react-navigation/native';
+import { getVideoById } from '../UserHTTP';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 const WorkoutVideo = ({ navigation }) => {
+  const route = useRoute();
+  const videoId = route?.params?.videoId; // <<< Lấy videoId từ màn hình trước
+  console.log('--- WorkoutVideo: Received videoId:', videoId); // <<< DÒNG NÀY RẤT QUAN TRỌNG
+  const [videoData, setVideoData] = useState(null); // <<< State lưu thông tin video
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState('');
 
+  // Gọi API để lấy chi tiết video khi component được mount
+  useEffect(() => {
+    const fetchVideoDetails = async () => {
+      if (!videoId) {
+        setError('Không tìm thấy Video ID được truyền qua.');
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const response = await getVideoById(videoId);
+        if (response.success && response.video) {
+          setVideoData(response.video);
+        } else {
+          setError(response.message || 'Không thể tải dữ liệu video.');
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVideoDetails();
+  }, [videoId]); // Dependency là videoId
+
   const toggleFavorite = () => setIsFavorite(!isFavorite);
+
+  if (isLoading) {
+    return <View style={styles.centerStatus}><ActivityIndicator size="large" color="#20B24A" /></View>;
+  }
+
+  if (error) {
+    return <View style={styles.centerStatus}><Text style={styles.errorText}>{error}</Text></View>;
+  }
+
+  if (!videoData) {
+    return <View style={styles.centerStatus}><Text>Không có dữ liệu video.</Text></View>;
+  }
 
   const infoText =
     'Tăng cường sức mạnh cơ bụng và cải thiện độ linh hoạt của phần thân trên. Giữ tư thế ổn định khi gập người và kiểm soát nhịp thở đều.';
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* ---------- HEADER ---------- */}
       <View style={styles.headerWrap}>
         <View style={styles.header}>
@@ -87,43 +135,33 @@ const WorkoutVideo = ({ navigation }) => {
       {/* ---------- NỘI DUNG CHÍNH ---------- */}
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
         {/* Ảnh chính + Play + Sao */}
-        <View style={styles.featuredWrapper}>
-          <View style={styles.featuredCard}>
-            <Image
-              source={require('../../../media/pictures/workout1.jpg')}
-              style={styles.workoutImage}
+        <View style={styles.videoContainer}>
+          {videoData.streaming_url ? (
+            <Video
+              source={{ uri: videoData.streaming_url }} // URL streaming HLS
+              style={styles.videoPlayer}
+              controls={true} // Hiển thị thanh điều khiển
+              resizeMode="contain" // Hoặc "cover" tùy ý
+              paused={true} // Bắt đầu ở trạng thái dừng
             />
+          ) : (
+            // Fallback nếu không có streaming_url
+            <Image source={require('../../../media/pictures/workout1.jpg')} style={styles.videoPlayer} />
+          )}
 
-            {/* Nút Play (chỉ nhấn được, không hành động) */}
-            <TouchableOpacity activeOpacity={0.6} style={styles.playButton}>
-              <Image
-                source={require('../../../media/pictures/Play_Button.png')}
-                style={styles.playIcon}
-              />
-            </TouchableOpacity>
-
-            {/* Nút Sao yêu thích */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.favoriteBtn}
-              onPress={toggleFavorite}
-            >
-              <Image
-                source={
-                  isFavorite
-                    ? require('../../../media/pictures/yellowstar.png')
-                    : require('../../../media/pictures/favorites_white_star.png')
-                }
-                style={styles.favoriteIcon}
-              />
-            </TouchableOpacity>
-          </View>
+          {/* Nút Sao yêu thích */}
+          <TouchableOpacity activeOpacity={0.8} style={styles.favoriteBtn} onPress={toggleFavorite}>
+            <Image
+              source={isFavorite ? require('../../../media/pictures/yellowstar.png') : require('../../../media/pictures/favorites_white_star.png')}
+              style={styles.favoriteIcon}
+            />
+          </TouchableOpacity>
         </View>
 
         {/* Thông tin bài tập */}
         <View style={styles.infoSection}>
           <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>Gập bụng trên ghế nghiêng</Text>
+            <Text style={styles.infoTitle}>{videoData.title}</Text>
             <Text style={styles.infoDesc}>{infoText}</Text>
 
             {/* 3 dòng thông tin nhỏ */}
@@ -133,7 +171,9 @@ const WorkoutVideo = ({ navigation }) => {
                   source={require('../../../media/pictures/time.png')}
                   style={styles.smallIcon}
                 />
-                <Text style={styles.infoItemText}>30 giây</Text>
+                <Text style={styles.infoItemText}>
+                  {Math.floor(videoData.duration / 60)}:{String(videoData.duration % 60).padStart(2, '0')}
+                </Text>
               </View>
 
               <View style={styles.infoItem}>
@@ -155,16 +195,32 @@ const WorkoutVideo = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 // ---------------- STYLES ----------------
 const styles = StyleSheet.create({
+  videoContainer: { // Container cho video player
+    width: '100%',
+    aspectRatio: 16 / 9, // Tỷ lệ khung hình video phổ biến
+    backgroundColor: '#000', // Nền đen khi video đang tải
+    position: 'relative', // Để nút favorite có thể đè lên
+    marginBottom: 20
+  },
+  videoPlayer: { // Style cho chính component Video
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+  },
+  favoriteBtn: { position: 'absolute', top: 16, right: 16, zIndex: 6 },
+  favoriteIcon: { width: 32, height: 32, resizeMode: 'contain' },
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'ios' ? 36 : 10,
+    paddingTop: Platform.OS === 'ios' ? 36 : 10
   },
 
   // Header

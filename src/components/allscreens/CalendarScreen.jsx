@@ -6,12 +6,12 @@ import {
     TouchableOpacity,
     ScrollView,
     StatusBar,
-    SafeAreaView,
     Image
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const CalendarScreen = () => {
+const CalendarScreen = ({ navigation }) => {
     const [selectedSchedule, setSelectedSchedule] = useState('LỊCH HỌC TỪ NGÀY 22/09 - 28/09');
     const [selectedSubject, setSelectedSubject] = useState('');
 
@@ -35,7 +35,7 @@ const CalendarScreen = () => {
             <StatusBar backgroundColor="#30C451" barStyle="light-content" />
 
             <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton}>
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <Icon name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Lịch học</Text>
@@ -45,7 +45,7 @@ const CalendarScreen = () => {
             <ScrollView style={styles.scrollContainer}>
                 <View style={styles.heroSection}>
                     <Image
-                        source={require('../../../media/pictures/headercalender.png')}
+                        source={require('../../media/pictures/headercalender.png')}
                         style={styles.heroImage}
                         resizeMode="cover"
                     />

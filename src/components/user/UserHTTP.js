@@ -82,15 +82,15 @@ export async function updateAvatar(file) {
         uri: file.uri,
         type: file.type,
         name: file.fileName || 'avatar.jpg'
-    })
+    });
 
     try {
         // Khi gửi FormData, cần set header 'Content-Type' đặc biệt
         const token = await AsyncStorage.getItem('token');
-        const response = await AxiosInstance.put('/api/user/avatar', formData, {
+        const axiosMultipartInstance = AxiosInstance('multipart/form-data');
+        const response = await axiosMultipartInstance.put('/api/user/avatar', formData, {
             headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'multipart/form-data'
             }
         });
         return response;
@@ -102,7 +102,7 @@ export async function updateAvatar(file) {
 
 export async function requestDeleteAccount() {
     try {
-        const response = await AxiosInstance.post('/api/user/delete-account/request');
+        const response = await AxiosInstance().post('/api/user/delete-account/request');
         return response;
     } catch (error) {
         const errorMessage = error.response?.data?.message || 'Yêu cầu xóa tài khoản thất bại';
@@ -112,10 +112,35 @@ export async function requestDeleteAccount() {
 
 export async function confirmDeleteAccount(code) {
     try {
-        const response = await AxiosInstance.post('/api/user/delete-account/confirm', { code });
+        const response = await AxiosInstance().post('/api/user/delete-account/confirm', { code });
         return response;
     } catch (error) {
         const errorMessage = error.response?.data?.message || 'Xác nhận xóa tài khoản thất bại';
+        throw new Error(errorMessage);
+    }
+}
+
+export async function getAllVideos(params = {}) {
+    try {
+        const response = await AxiosInstance().get('/api/videos', { params });
+        return response;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Không thể tải danh sách video.';
+        throw new Error(errorMessage);
+    }
+}
+
+export async function getVideoById(videoId) {
+    try {
+        const response = await AxiosInstance().get(`/api/videos/${videoId}`);
+        return response;
+    } catch (error) {
+        // <<< THÊM LOG LỖI CHI TIẾT >>>
+        console.error('--- UserHTTP: getVideoById FAILED ---');
+        console.error('Video ID:', videoId);
+        console.error('Full Axios Error:', error.response?.data || error.message || error);
+        // ---------------------------------
+        const errorMessage = error.response?.data?.message || 'Không thể tải thông tin video.';
         throw new Error(errorMessage);
     }
 }

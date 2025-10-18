@@ -43,6 +43,7 @@ export const UserProvider = (props) => {
     try {
       const response = await getProfile();
       if (response.ok && response.user) {
+        console.log('UserContext: Dữ liệu profile mới nhận được từ API:', JSON.stringify(response.user, null, 2));
         setUser(response.user); // Chỉ cập nhật lại đối tượng user
         console.log('Làm mới thông tin thành công!');
       }

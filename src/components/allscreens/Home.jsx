@@ -7,6 +7,7 @@ import {
     FlatList
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from '@react-navigation/native';
 
 var DATA = [
     {
@@ -67,6 +68,7 @@ import { UserContext } from '../user/UserContext';
 
 const HomeHeader = ({ data, renderData }) => {
     const { logout } = useContext(UserContext);
+    const navigation = useNavigation();
     return (
         <View >
             <View style={styles.headerContainer}>
@@ -86,7 +88,7 @@ const HomeHeader = ({ data, renderData }) => {
 
             <View style={styles.tabBarContainer}>
                 <View style={styles.tabBar}>
-                    <TouchableOpacity style={styles.itemTabBar}>
+                    <TouchableOpacity style={styles.itemTabBar} onPress={() => navigation.navigate('WorkoutScreen')}>
                         <View style={styles.bgImage}>
                             <Image style={[styles.itemImage, { tintColor: '#145724' }]} source={require('../../media/pictures/cucta.png')} />
                         </View>
@@ -94,7 +96,10 @@ const HomeHeader = ({ data, renderData }) => {
                             <Text style={styles.itemText}>Tập luyện</Text>
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.itemTabBar}>
+                    <TouchableOpacity
+                        style={styles.itemTabBar}
+                        onPress={() => navigation.navigate('SearchCalendarScreen')}
+                    >
                         <View style={styles.bgImage}>
                             <Image style={styles.itemImage} source={require('../../media/pictures/calendar.png')} />
                         </View>
@@ -110,7 +115,7 @@ const HomeHeader = ({ data, renderData }) => {
                             <Text style={styles.itemText}>Đặt lịch HLV</Text>
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.itemTabBar}>
+                    <TouchableOpacity style={styles.itemTabBar} onPress={() => navigation.navigate('CalendarScreen')}>
                         <View style={styles.bgImage}>
                             <Image style={styles.itemImage} source={require('../../media/pictures/schedule.png')} />
                         </View>
@@ -118,7 +123,7 @@ const HomeHeader = ({ data, renderData }) => {
                             <Text style={styles.itemText}>Lịch học</Text>
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.itemTabBar}>
+                    <TouchableOpacity style={styles.itemTabBar} onPress={() => navigation.navigate('CardMembershipScreen')}>
                         <View style={styles.bgImage}>
                             <Image style={styles.itemImage} source={require('../../media/pictures/cart.png')} />
                         </View>
@@ -239,7 +244,7 @@ const HomeHeader = ({ data, renderData }) => {
     )
 }
 
-const Home = (props) => {
+const Home = ({ navigation }) => {
     const [data, setData] = useState(DATA);
     const [lesmillsdata, setLesmillsData] = useState(LESMILLSDATE);
 
@@ -292,7 +297,8 @@ const Home = (props) => {
                             <View>
                                 <Text style={styles.textRecommend}>Tin tức GymXFit</Text>
                             </View>
-                            <TouchableOpacity style={styles.allcontainer}>
+                            <TouchableOpacity style={styles.allcontainer}
+                                onPress={() => navigation.navigate('News')}>
                                 <View>
                                     <Text style={styles.textAll}>Tất cả</Text>
                                 </View>

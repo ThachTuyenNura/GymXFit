@@ -6,7 +6,7 @@ import {
     FlatList
 } from 'react-native';
 
-const News = (props) => {
+const News = ({ navigation }) => {
     const isDarkMode = useColorScheme() === 'light';
     const [data, setDate] = useState(DATA);
 
@@ -30,7 +30,7 @@ const News = (props) => {
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             <View style={styles.container}>
                 <View style={styles.headerContainer}>
-                    <TouchableOpacity style={styles.backHeader}>
+                    <TouchableOpacity style={styles.backHeader} onPress={() => navigation.goBack()}>
                         <Image style={styles.tintWhiteBack} source={require('../../media/pictures/Arrow.png')} />
                         <Text style={styles.textBack}>Quay lại</Text>
                     </TouchableOpacity>
@@ -57,7 +57,7 @@ const News = (props) => {
 
 export default News;
 
-styles = StyleSheet.create({
+const styles = StyleSheet.create({
     textTitleContent: {
         fontSize: 15,
         fontWeight: '600'

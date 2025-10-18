@@ -5,36 +5,36 @@ import {
     View,
     TouchableOpacity,
     StatusBar,
-    SafeAreaView,
     Dimensions,
     Image
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width } = Dimensions.get('window');
 
-const CardMembershipScreen = () => {
+const CardMembershipScreen = ({ navigation }) => {
     const [currentCard, setCurrentCard] = useState(0);
 
     const membershipCards = [
         {
             id: 1,
             type: 'CLASSIC MEMBERSHIP',
-            image: require('../../../media/pictures/cardmemberclassic.png'),
+            image: require('../../media/pictures/cardmemberclassic.png'),
             description: 'TẬP LUYỆN TẠI CLB BAN YÊU THÍCH NHẤT',
             color: '#c41e3a'
         },
         {
             id: 2,
             type: 'CLASSIC PLUS',
-            image: require('../../../media/pictures/cardmemberplus.png'),
+            image: require('../../media/pictures/cardmemberplus.png'),
             description: 'TẬP LUYỆN TẠI CÁC CLB CĂN BẢN',
             color: '#6B9596'
         },
         {
             id: 3,
             type: 'PREMIUM MEMBERSHIP',
-            image: require('../../../media/pictures/cardmembervip.png'),
+            image: require('../../media/pictures/cardmembervip.png'),
             description: 'TẬP LUYỆN KHÔNG GIỚI HẠN TẤT CẢ CLB',
             color: '#2F2F2F'
         }
@@ -55,7 +55,7 @@ const CardMembershipScreen = () => {
             <StatusBar />
 
             <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton}>
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <Icon name="arrow-back-ios-new" size={24} color="white" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Chính sách giá</Text>

@@ -7,9 +7,11 @@ import {
 
 import { useContext } from 'react';
 import { UserContext } from '../user/UserContext';
+import { useNavigation } from '@react-navigation/native';
 
-const Profile = ({ navigation }) => {
+const Profile = (props) => {
     const { logout } = useContext(UserContext);
+    const navigation = useNavigation();
     return (
         <View style={styles.container}>
             <View style={styles.infoContainer}>

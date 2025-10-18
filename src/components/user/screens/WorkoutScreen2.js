@@ -14,13 +14,14 @@ const WorkoutScreen2 = ({ navigation }) => {
     {
       round: 'Hiệp 1',
       exercises: [
-        { id: '1', title: 'Đẩy ngực với tạ đòn', time: '00:30', reps: '3x' },
-        { id: '2', title: 'Hít xà tam đầu', time: '00:15', reps: '2x' },
+        { id: '1', title: 'Đẩy ngực với tạ đòn', time: '00:30', reps: '3x', videoId: '68f27b44812ace4e1165a782' },
+        { id: '2', title: 'Hít xà tam đầu', time: '00:15', reps: '2x', videoId: '68f27b44812ace4e1165a782' },
         {
           id: '3',
           title: 'Gập bụng trên ghế nghiêng',
           time: '00:30',
           reps: '3x',
+          videoId: '68f27b44812ace4e1165a782',
           active: true, // nút play đổi sang Play_Button_2.png
         },
       ],
@@ -43,7 +44,7 @@ const WorkoutScreen2 = ({ navigation }) => {
     <TouchableOpacity
       key={item.id}
       style={styles.exerciseCard}
-      onPress={() => navigation.navigate('WorkoutVideo')}
+      onPress={() => navigation.navigate('WorkoutVideo', { videoId: item.videoId })}
     >
       {/* nút phát (play button) */}
       <View style={styles.playButtonWrap}>

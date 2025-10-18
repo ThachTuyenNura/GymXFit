@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // Import các screen
 import Home from './Home';
@@ -10,9 +11,16 @@ import Profile from './Profile';
 import Search from './Search';
 import QRScanner from './QRScanner';
 import UpdateProfile from './UpdateProfile';
-import SurveyScreen from '../user/screens/SurveyScreen';
+import SearchCalendarScreen from './SearchCalendarScreen';
+import News from './News';
+import CalendarScreen from './CalendarScreen';
+import CardMembershipScreen from './CardMembershipScreen'
+import WorkoutScreen from '../user/screens/WorkoutScreen'
+import WorkoutScreen2 from '../user/screens/WorkoutScreen2'
+import WorkoutVideo from '../user/screens/WorkoutVideo'
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
 // Custom Tab Bar với FAB
 const CustomTabBar = ({ state, descriptors, navigation }) => {
@@ -29,14 +37,14 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             {/* Nút Home */}
             <TouchableOpacity
                 style={styles.tabButton}
-                onPress={() => navigation.navigate('Home')}
+                onPress={() => navigation.navigate('HomeStack')}
             >
                 <Icon
                     name="home"
                     size={24}
-                    color={state.index === 0 ? '#fff' : '#ddd'}
+                    color={state.routes[state.index].name === 'HomeStack' ? '#fff' : '#ddd'}
                 />
-                <Text style={[styles.tabLabel, state.index === 0 && styles.activeLabel]}>
+                <Text style={[styles.tabLabel, state.routes[state.index].name === 'HomeStack' && styles.activeLabel]}>
                     Trang chủ
                 </Text>
             </TouchableOpacity>
@@ -44,14 +52,14 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             {/* Nút Search */}
             <TouchableOpacity
                 style={styles.tabButton}
-                onPress={() => navigation.navigate('Search')}
+                onPress={() => navigation.navigate('SearchCalendarScreen')}
             >
                 <Icon
                     name="assignment"
                     size={24}
-                    color={state.index === 1 ? '#fff' : '#ddd'}
+                    color={state.routes[state.index].name === 'SearchCalendarScreen' ? '#fff' : '#ddd'}
                 />
-                <Text style={[styles.tabLabel, state.index === 1 && styles.activeLabel]}>
+                <Text style={[styles.tabLabel, state.routes[state.index].name === 'SearchCalendarScreen' && styles.activeLabel]}>
                     Đặt lịch
                 </Text>
             </TouchableOpacity>
@@ -75,9 +83,9 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
                 <Icon
                     name="star"
                     size={24}
-                    color={state.index === 2 ? '#fff' : '#ddd'}
+                    color={state.routes[state.index].name === 'Notification' ? '#fff' : '#ddd'}
                 />
-                <Text style={[styles.tabLabel, state.index === 2 && styles.activeLabel]}>
+                <Text style={[styles.tabLabel, state.routes[state.index].name === 'Notification' && styles.activeLabel]}>
                     Yêu thích
                 </Text>
             </TouchableOpacity>
@@ -85,14 +93,14 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             {/* Nút Profile */}
             <TouchableOpacity
                 style={styles.tabButton}
-                onPress={() => navigation.navigate('UpdateProfile')}
+                onPress={() => navigation.navigate('ProfileStack')}
             >
                 <Icon
                     name="headset-mic"
                     size={24}
-                    color={state.index === 3 ? '#fff' : '#ddd'}
+                    color={state.routes[state.index].name === 'ProfileStack' ? '#fff' : '#ddd'}
                 />
-                <Text style={[styles.tabLabel, state.index === 3 && styles.activeLabel]}>
+                <Text style={[styles.tabLabel, state.routes[state.index].name === 'ProfileStack' && styles.activeLabel]}>
                     Hỗ trợ
                 </Text>
             </TouchableOpacity>
@@ -100,19 +108,43 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
     );
 };
 
+const HomeStack = () => {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name='Home' component={Home} />
+            <Stack.Screen name='SearchCalendarScreen' component={SearchCalendarScreen} />
+            <Stack.Screen name='News' component={News} />
+            <Stack.Screen name='CalendarScreen' component={CalendarScreen} />
+            <Stack.Screen name='CardMembershipScreen' component={CardMembershipScreen} />
+            <Stack.Screen name='WorkoutScreen' component={WorkoutScreen} />
+            <Stack.Screen name='WorkoutScreen2' component={WorkoutScreen2} />
+            <Stack.Screen name='WorkoutVideo' component={WorkoutVideo} />
+        </Stack.Navigator>
+    )
+}
+
+const ProfileStack = () => {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name='Prolife' component={Profile} />
+            <Stack.Screen name='UpdateProfile' component={UpdateProfile} />
+        </Stack.Navigator>
+    )
+}
+
 const HomeNavigation = () => {
     return (
         <Tab.Navigator
-            initialRouteName='Home'
+            initialRouteName='HomeStack'
             tabBar={props => <CustomTabBar {...props} />}
             screenOptions={{
                 headerShown: false,
             }}
         >
-            <Tab.Screen name="Home" component={Home} />
-            <Tab.Screen name="Search" component={Search} />
+            <Tab.Screen name="HomeStack" component={HomeStack} />
+            <Tab.Screen name="SearchCalendarScreen" component={SearchCalendarScreen} />
             <Tab.Screen name="Notification" component={Notification} />
-            <Tab.Screen name="UpdateProfile" component={UpdateProfile} />
+            <Tab.Screen name="ProfileStack" component={ProfileStack} />
         </Tab.Navigator>
     );
 };

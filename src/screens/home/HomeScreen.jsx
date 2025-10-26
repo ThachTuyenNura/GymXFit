@@ -1,689 +1,617 @@
-import React, { useContext, useState } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import {
-    Text,
-    View,
-    Image,
-    StyleSheet,
-    TouchableOpacity,
-    FlatList,
+  Text,
+  View,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+
 import { UserContext } from '@context/UserContext';
+import { getAllVideos } from '@api/userApi';
+import { searchAvailableClasses } from '@api/classesApi';
 
-var DATA = [
-    {
-        "id": 1,
-        "image": require('@assets/images/tutorial1.jpg'),
-        "title": "Các bài tập gym giảm mỡ bụng nam hiệu quả nhất không nên bỏ qua",
-        "date": "28/09/2025"
-    },
-    {
-        "id": 2,
-        "image": require('@assets/images/tutorial2.jpg'),
-        "title": "body combat: bí quyết giảm cân đốt mỡ thừa thần tốc",
-        "date": "28/09/2025"
-    },
-    {
-        "id": 3,
-        "image": require('@assets/images/tutorial3.jpg'),
-        "title": "bật mí tất tần tật về việc học yoga: bạn có thực sự hiểu về bộ môn này",
-        "date": "28/09/2025"
-    },
-    {
-        "id": 4,
-        "image": require('@assets/images/tutorial3.jpg'),
-        "title": "bật mí tất tần tật về việc học yoga: bạn có thực sự hiểu về bộ môn này",
-        "date": "28/09/2025"
-    },
-]
+const formatDateLabel = (date) => {
+  try {
+    return new Date(date).toLocaleDateString('vi-VN', {
+      weekday: 'short',
+      day: '2-digit',
+      month: '2-digit',
+    });
+  } catch {
+    return '--/--';
+  }
+};
 
-var LESMILLSDATE = [
-    {
-        "id": 1,
-        "image": require('@assets/images/lesmils1.jpg'),
-        "title": "RPM - Tăng cường sức khỏe tim mạch, săn chắc cơ đùi, chân",
-        "date": "28/09/2025"
-    },
-    {
-        "id": 2,
-        "image": require('@assets/images/lesmils2.jpg'),
-        "title": "BODYJAMS - Vũ điệu sôi động, nạp đầy hứng khởi",
-        "date": "28/09/2025"
-    },
-    {
-        "id": 3,
-        "image": require('@assets/images/lesmils3.jpg'),
-        "title": "Body Pump - Tăng cường sức khỏe và cơ bắp từ Les Mils - Bộ môn thể dục đa năng",
-        "date": "28/09/2025"
-    },
-    {
-        "id": 4,
-        "image": require('@assets/images/lesmils4.jpg'),
-        "title": "Body Compat - Hình thức tập luyện đầy năng lượng",
-        "date": "28/09/2025"
-    },
-]
+const formatTimeRange = (start, end) => {
+  try {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const formatter = (value) =>
+      value.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    return `${formatter(startDate)} - ${formatter(endDate)}`;
+  } catch {
+    return '--:--';
+  }
+};
 
-const HomeHeader = ({ data, renderData }) => {
-    const { logout } = useContext(UserContext);
-    const navigation = useNavigation();
-    return (
-        <View >
-            <View style={styles.headerContainer}>
-                <View>
-                    <Text style={styles.headerText}>Xin chào Thạch Tuyển!</Text>
-                </View>
-
-                <View style={styles.headerRight}>
-                    <TouchableOpacity>
-                        <Image source={require('@assets/images/Search.png')} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={logout}>
-                        <Image source={require('@assets/images/Notifications.png')} />
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            <View style={styles.tabBarContainer}>
-                <View style={styles.tabBar}>
-                    <TouchableOpacity style={styles.itemTabBar} onPress={() => navigation.navigate('WorkoutScreen')}>
-                        <View style={styles.bgImage}>
-                            <Image style={[styles.itemImage, { tintColor: '#145724' }]} source={require('@assets/images/cucta.png')} />
-                        </View>
-                        <View>
-                            <Text style={styles.itemText}>Tập luyện</Text>
-                        </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.itemTabBar}
-                        onPress={() => navigation.navigate('SearchCalendarScreen')}
-                    >
-                        <View style={styles.bgImage}>
-                            <Image style={styles.itemImage} source={require('@assets/images/calendar.png')} />
-                        </View>
-                        <View>
-                            <Text style={styles.itemText}>Đặt lịch tập luyện</Text>
-                        </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.itemTabBar}>
-                        <View style={styles.bgImage}>
-                            <Image style={styles.itemImage} source={require('@assets/images/pt.png')} />
-                        </View>
-                        <View>
-                            <Text style={styles.itemText}>Đặt lịch HLV</Text>
-                        </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.itemTabBar} onPress={() => navigation.navigate('CalendarScreen')}>
-                        <View style={styles.bgImage}>
-                            <Image style={styles.itemImage} source={require('@assets/images/schedule.png')} />
-                        </View>
-                        <View>
-                            <Text style={styles.itemText}>Lịch học</Text>
-                        </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.itemTabBar} onPress={() => navigation.navigate('CardMembershipScreen')}>
-                        <View style={styles.bgImage}>
-                            <Image style={styles.itemImage} source={require('@assets/images/cart.png')} />
-                        </View>
-                        <View>
-                            <Text style={styles.itemText}>Mua dịch vụ</Text>
-                        </View>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            <View style={styles.recommendCotainer}>
-                <View>
-                    <Text style={styles.textRecommend}>Gợi ý</Text>
-                </View>
-                <TouchableOpacity style={styles.allcontainer}>
-                    <View>
-                        <Text style={styles.textAll}>Tất cả</Text>
-                    </View>
-                    <View>
-                        <Image source={require('@assets/images/arrowright.png')} />
-                    </View>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.videoContainer}>
-                <TouchableOpacity style={styles.itemVideo}>
-                    <View style={styles.aboveVideoContainer}>
-                        <Image style={styles.imageAboveVideo} source={require('@assets/images/womanhelping.png')} />
-                        <TouchableOpacity style={styles.yellowstarImage}>
-                            <Image source={require('@assets/images/yellowstar.png')} />
-                        </TouchableOpacity>
-                        <Image style={styles.playvideoImage} source={require('@assets/images/playvideo.png')} />
-                    </View>
-
-                    <View style={styles.belowVideoContainer}>
-                        <View style={styles.titleBelowVideo}>
-                            <Text style={styles.textTitleBelowVideo}>Squat Exercise</Text>
-                        </View>
-                        <View style={styles.desBelowVideo}>
-                            <View style={styles.minuteDesBelowVideo}>
-                                <Image source={require('@assets/images/time.png')} />
-                                <Text style={styles.textMinute}>12 minutes</Text>
-                            </View>
-                            <View style={styles.kcalDesBelowVideo}>
-                                <Image source={require('@assets/images/calories.png')} />
-                                <Text style={styles.textMinute}>120 Kcal</Text>
-                            </View>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.itemVideo}>
-                    <View style={styles.aboveVideoContainer}>
-                        <Image style={styles.imageAboveVideo} source={require('@assets/images/womanhelping2.png')} />
-                        <TouchableOpacity style={styles.yellowstarImage}>
-                            <Image source={require('@assets/images/whitestar.png')} />
-                        </TouchableOpacity>
-                        <Image style={styles.playvideoImage} source={require('@assets/images/playvideo.png')} />
-                    </View>
-
-                    <View style={styles.belowVideoContainer}>
-                        <View style={styles.titleBelowVideo}>
-                            <Text style={styles.textTitleBelowVideo}>Full body Stretching</Text>
-                        </View>
-                        <View style={styles.desBelowVideo}>
-                            <View style={styles.minuteDesBelowVideo}>
-                                <Image source={require('@assets/images/time.png')} />
-                                <Text style={styles.textMinute}>10 minutes</Text>
-                            </View>
-                            <View style={styles.kcalDesBelowVideo}>
-                                <Image source={require('@assets/images/calories.png')} />
-                                <Text style={styles.textMinute}>100 Kcal</Text>
-                            </View>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.recommendCotainer}>
-                <View>
-                    <Text style={styles.textRecommend}>Hướng dẫn luyện tập</Text>
-                </View>
-                <TouchableOpacity style={styles.allcontainer}>
-                    <View>
-                        <Text style={styles.textAll}>Tất cả</Text>
-                    </View>
-                    <View>
-                        <Image source={require('@assets/images/arrowright.png')} />
-                    </View>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.tutorialContainer}>
-                <FlatList
-                    data={data}
-                    renderItem={renderData}
-                    keyExtractor={(item) => item.id}
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    showsVerticalScrollIndicator={false}
-                />
-            </View>
-
-            <View style={styles.recommendCotainer}>
-                <View>
-                    <Text style={styles.textRecommend}>Lesmils</Text>
-                </View>
-                <TouchableOpacity style={styles.allcontainer}>
-                    <View>
-                        <Text style={styles.textAll}>Tất cả</Text>
-                    </View>
-                    <View>
-                        <Image source={require('@assets/images/arrowright.png')} />
-                    </View>
-                </TouchableOpacity>
-            </View>
+const QuickActions = ({ navigation }) => (
+  <View style={styles.tabBarContainer}>
+    <View style={styles.tabBar}>
+      <TouchableOpacity
+        style={styles.itemTabBar}
+        onPress={() => navigation.navigate('WorkoutScreen')}
+      >
+        <View style={styles.bgImage}>
+          <Image style={[styles.itemImage, { tintColor: '#145724' }]} source={require('@assets/images/cucta.png')} />
         </View>
-    )
-}
+        <Text style={styles.itemText}>Tập luyện</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.itemTabBar}
+        onPress={() => navigation.navigate('SearchCalendarScreen')}
+      >
+        <View style={styles.bgImage}>
+          <Image style={styles.itemImage} source={require('@assets/images/calendar.png')} />
+        </View>
+        <Text style={styles.itemText}>Đặt lịch tập</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.itemTabBar}
+        onPress={() => navigation.navigate('SearchCalendarScreen')}
+      >
+        <View style={styles.bgImage}>
+          <Image style={styles.itemImage} source={require('@assets/images/pt.png')} />
+        </View>
+        <Text style={styles.itemText}>Đặt lịch HLV</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.itemTabBar}
+        onPress={() => navigation.navigate('CalendarScreen')}
+      >
+        <View style={styles.bgImage}>
+          <Image style={styles.itemImage} source={require('@assets/images/schedule.png')} />
+        </View>
+        <Text style={styles.itemText}>Lịch học</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.itemTabBar}
+        onPress={() => navigation.navigate('CardMembershipScreen')}
+      >
+        <View style={styles.bgImage}>
+          <Image style={styles.itemImage} source={require('@assets/images/cart.png')} />
+        </View>
+        <Text style={styles.itemText}>Mua dịch vụ</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
+const TutorialCarousel = ({ title, data, onPressItem, onPressSeeAll }) => (
+  <View style={styles.sectionWrapper}>
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <TouchableOpacity style={styles.sectionAction} onPress={onPressSeeAll}>
+        <Text style={styles.sectionActionText}>Tất cả</Text>
+        <Image source={require('@assets/images/arrowright.png')} />
+      </TouchableOpacity>
+    </View>
+
+    <FlatList
+      data={data}
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          style={styles.itemTutorial}
+          activeOpacity={0.85}
+          onPress={() => onPressItem(item)}
+        >
+          <View>
+            {item.thumbnail ? (
+              <Image style={styles.imageTutorial} source={{ uri: item.thumbnail }} />
+            ) : (
+              <Image style={styles.imageTutorial} source={require('@assets/images/tutorial1.jpg')} />
+            )}
+          </View>
+          <View style={styles.contentTutorial}>
+            <Text style={styles.titleContent} numberOfLines={2}>
+              {item.title}
+            </Text>
+            <Text style={styles.dateContent}>
+              {item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : 'Tập luyện'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      )}
+      keyExtractor={(item) => item.id}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+    />
+  </View>
+);
+
+const HighlightClasses = ({ classes, onPressClass }) => {
+  if (!classes.length) return null;
+
+  return (
+    <View style={styles.sectionWrapper}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Lớp sắp diễn ra</Text>
+        <TouchableOpacity style={styles.sectionAction} onPress={() => onPressClass()}>
+          <Text style={styles.sectionActionText}>Đặt lịch</Text>
+          <Image source={require('@assets/images/arrowright.png')} />
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={classes}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.classCard}
+            activeOpacity={0.85}
+            onPress={() => onPressClass(item)}
+          >
+            <View style={styles.classTimeBadge}>
+              <Text style={styles.classTimeText}>{formatDateLabel(item.startTime)}</Text>
+            </View>
+            <Text style={styles.className}>{item.name}</Text>
+            <Text style={styles.classSchedule}>{formatTimeRange(item.startTime, item.endTime)}</Text>
+            {item.location ? (
+              <View style={styles.classLocationRow}>
+                <Icon name="location-on" size={16} color="#30C451" />
+                <Text style={styles.classLocationText}>{item.location}</Text>
+              </View>
+            ) : null}
+            <Text style={styles.classSpots}>
+              {item.availableSpots} chỗ trống • PT {item.instructor?.name || 'GymXFit'}
+            </Text>
+          </TouchableOpacity>
+        )}
+        keyExtractor={(item) => item.classId}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      />
+    </View>
+  );
+};
 
 const HomeScreen = ({ navigation }) => {
-    const [data] = useState(DATA);
-    const [lesmillsdata] = useState(LESMILLSDATE);
+  const { user } = useContext(UserContext);
+  const userName = user?.name || user?.phone || 'hội viên';
 
-    const renderData = (val) => {
-        const { title, image, date } = val.item;
-        return (
-            <View style={styles.itemTutorial}>
-                <View>
-                    <Image style={styles.imageTutorial} source={image} />
-                </View>
-                <View style={styles.contentTutorial}>
-                    <Text style={styles.titleContent}>{title}</Text>
-                    <Text style={styles.dateContent}>{date}</Text>
-                </View>
-            </View>
-        )
+  const [tutorials, setTutorials] = useState([]);
+  const [lesmills, setLesmills] = useState([]);
+  const [highlightClasses, setHighlightClasses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchHomeData = useCallback(async (isPullToRefresh = false) => {
+    if (isPullToRefresh) {
+      setRefreshing(true);
+    } else {
+      setIsLoading(true);
     }
+    setError(null);
 
-    const renderLesmillsData = (val) => {
-        const { title, image, date } = val.item;
-        return (
-            <View style={styles.itemLesmills}>
-                <View>
-                    <Image style={styles.imageLesmills} source={image} />
-                </View>
-                <View style={styles.contentLesmills}>
-                    <Text style={styles.titleContentLesmills} numberOfLines={3}>{title}</Text>
-                    <Text style={styles.dateContentLesmills}>{date}</Text>
-                </View>
-            </View>
-        )
+    try {
+      const [videosResponse, classesResponse] = await Promise.all([
+        getAllVideos({ limit: 12 }),
+        searchAvailableClasses({ limit: 6, sortBy: 'startTime', sortOrder: 'asc' }),
+      ]);
+
+      if (videosResponse?.success) {
+        const videos = videosResponse.videos || [];
+        setTutorials(videos.slice(0, 6));
+        setLesmills(videos.slice(6));
+      } else {
+        setTutorials([]);
+        setLesmills([]);
+        setError(videosResponse?.message || 'Không thể tải bài tập.');
+      }
+
+      if (classesResponse?.success) {
+        setHighlightClasses(classesResponse.data || []);
+      } else {
+        setHighlightClasses([]);
+      }
+    } catch (err) {
+      setError(err.message);
+      setTutorials([]);
+      setLesmills([]);
+      setHighlightClasses([]);
+    } finally {
+      if (isPullToRefresh) {
+        setRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
+  }, []);
 
+  useEffect(() => {
+    fetchHomeData(false);
+  }, [fetchHomeData]);
+
+  const handleRefresh = useCallback(() => fetchHomeData(true), [fetchHomeData]);
+
+  const handlePressVideo = useCallback(
+    (video) => {
+      if (!video?.id) return;
+      navigation.navigate('WorkoutVideo', { videoId: video.id });
+    },
+    [navigation],
+  );
+
+  const handlePressClass = useCallback(
+    (classItem) => {
+      if (classItem?.classId) {
+        navigation.navigate('SearchCalendarScreen', { highlightClassId: classItem.classId });
+      } else {
+        navigation.navigate('SearchCalendarScreen');
+      }
+    },
+    [navigation],
+  );
+
+  const renderLesmillsItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.itemLesmills}
+      activeOpacity={0.85}
+      onPress={() => handlePressVideo(item)}
+    >
+      <View>
+        {item.thumbnail ? (
+          <Image style={styles.imageLesmills} source={{ uri: item.thumbnail }} />
+        ) : (
+          <Image style={styles.imageLesmills} source={require('@assets/images/lesmils1.jpg')} />
+        )}
+      </View>
+      <View style={styles.contentLesmills}>
+        <Text style={styles.titleContentLesmills} numberOfLines={3}>
+          {item.title}
+        </Text>
+        <Text style={styles.dateContentLesmills}>
+          {item.estimated_calories} Kcal • {item.category}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const listHeader = (
+    <View>
+      <View style={styles.headerContainer}>
+        <View>
+          <Text style={styles.headerText}>Xin chào {userName}!</Text>
+          <Text style={styles.headerSubText}>Cùng GymXFit hoàn thành mục tiêu hôm nay nhé.</Text>
+        </View>
+
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('WorkoutScreen')}>
+            <Image source={require('@assets/images/Search.png')} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
+            <Image source={require('@assets/images/Notifications.png')} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <QuickActions navigation={navigation} />
+      <HighlightClasses classes={highlightClasses} onPressClass={handlePressClass} />
+      <TutorialCarousel
+        title="Hướng dẫn luyện tập"
+        data={tutorials}
+        onPressItem={handlePressVideo}
+        onPressSeeAll={() => navigation.navigate('WorkoutScreen')}
+      />
+    </View>
+  );
+
+  if (isLoading && !refreshing) {
     return (
-        <SafeAreaView style={styles.container}>
-            {/* GIẢI PHÁP TỐI ƯU: Thay thế ScrollView bằng FlatList */}
-            <FlatList
-                data={lesmillsdata} // Dữ liệu chính (Lesmills)
-                renderItem={renderLesmillsData}
-                keyExtractor={(item) => String(item.id)}
-                numColumns={2}
-                showsVerticalScrollIndicator={false}
-                // Tất cả nội dung cuộn được của ScrollView cũ sẽ được đưa vào ListHeaderComponent
-                ListHeaderComponent={
-                    <HomeHeader data={data} renderData={renderData} />
-                }
-                ListFooterComponent={
-                    <View>
-                        <View style={styles.recommendCotainer}>
-                            <View>
-                                <Text style={styles.textRecommend}>Tin tức GymXFit</Text>
-                            </View>
-                            <TouchableOpacity style={styles.allcontainer}
-                                onPress={() => navigation.navigate('News')}>
-                                <View>
-                                    <Text style={styles.textAll}>Tất cả</Text>
-                                </View>
-                                <View>
-                                    <Image source={require('@assets/images/arrowright.png')} />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.tutorialContainer}>
-                            <FlatList
-                                data={data}
-                                renderItem={renderData}
-                                keyExtractor={(item) => item.id}
-                                horizontal={true}
-                                showsHorizontalScrollIndicator={false}
-                                showsVerticalScrollIndicator={false}
-                            />
-                        </View>
-                    </View>
-                }
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#30C451" />
+        <Text style={styles.loadingText}>Đang tải nội dung...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => fetchHomeData(false)}>
+            <Text style={styles.retryText}>Thử lại</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={lesmills}
+          renderItem={renderLesmillsItem}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.listContent}
+          columnWrapperStyle={styles.columnWrapper}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={['#30C451']}
             />
-        </SafeAreaView>
-        // <SafeAreaView style={styles.container}>
-        //     <View style={styles.headerContainer}>
-        //         <View>
-        //             <Text style={styles.headerText}>Xin chào Thạch Tuyển!</Text>
-        //         </View>
-
-        //         <View style={styles.headerRight}>
-        //             <View>
-        //                 <Image source={require('@assets/images/Search.png')} />
-        //             </View>
-        //             <View>
-        //                 <Image source={require('@assets/images/Notifications.png')} />
-        //             </View>
-        //         </View>
-        //     </View>
-        //     <ScrollView
-        //         showsHorizontalScrollIndicator={false}
-        //         showsVerticalScrollIndicator={false}
-        //     >
-        //         <View style={styles.tabBarContainer}>
-        //             <View style={styles.tabBar}>
-        //                 <TouchableOpacity style={styles.itemTabBar}>
-        //                     <View style={styles.bgImage}>
-        //                         <Image style={[styles.itemImage, { tintColor: '#145724' }]} source={require('@assets/images/cucta.png')} />
-        //                     </View>
-        //                     <View>
-        //                         <Text style={styles.itemText}>Tập luyện</Text>
-        //                     </View>
-        //                 </TouchableOpacity>
-        //                 <TouchableOpacity style={styles.itemTabBar}>
-        //                     <View style={styles.bgImage}>
-        //                         <Image style={styles.itemImage} source={require('@assets/images/calendar.png')} />
-        //                     </View>
-        //                     <View>
-        //                         <Text style={styles.itemText}>Đặt lịch tập luyện</Text>
-        //                     </View>
-        //                 </TouchableOpacity>
-        //                 <TouchableOpacity style={styles.itemTabBar}>
-        //                     <View style={styles.bgImage}>
-        //                         <Image style={styles.itemImage} source={require('@assets/images/pt.png')} />
-        //                     </View>
-        //                     <View>
-        //                         <Text style={styles.itemText}>Đặt lịch HLV</Text>
-        //                     </View>
-        //                 </TouchableOpacity>
-        //                 <TouchableOpacity style={styles.itemTabBar}>
-        //                     <View style={styles.bgImage}>
-        //                         <Image style={styles.itemImage} source={require('@assets/images/schedule.png')} />
-        //                     </View>
-        //                     <View>
-        //                         <Text style={styles.itemText}>Lịch học</Text>
-        //                     </View>
-        //                 </TouchableOpacity>
-        //                 <TouchableOpacity style={styles.itemTabBar}>
-        //                     <View style={styles.bgImage}>
-        //                         <Image style={styles.itemImage} source={require('@assets/images/cart.png')} />
-        //                     </View>
-        //                     <View>
-        //                         <Text style={styles.itemText}>Mua dịch vụ</Text>
-        //                     </View>
-        //                 </TouchableOpacity>
-        //             </View>
-        //         </View>
-
-        //         <View style={styles.recommendCotainer}>
-        //             <View>
-        //                 <Text style={styles.textRecommend}>Gợi ý</Text>
-        //             </View>
-        //             <TouchableOpacity style={styles.allcontainer}>
-        //                 <View>
-        //                     <Text style={styles.textAll}>Tất cả</Text>
-        //                 </View>
-        //                 <View>
-        //                     <Image source={require('@assets/images/arrowright.png')} />
-        //                 </View>
-        //             </TouchableOpacity>
-        //         </View>
-
-        //         <View style={styles.videoContainer}>
-        //             <TouchableOpacity style={styles.itemVideo}>
-        //                 <View style={styles.aboveVideoContainer}>
-        //                     <Image style={styles.imageAboveVideo} source={require('@assets/images/womanhelping.png')} />
-        //                     <TouchableOpacity style={styles.yellowstarImage}>
-        //                         <Image source={require('@assets/images/yellowstar.png')} />
-        //                     </TouchableOpacity>
-        //                     <Image style={styles.playvideoImage} source={require('@assets/images/playvideo.png')} />
-        //                 </View>
-
-        //                 <View style={styles.belowVideoContainer}>
-        //                     <View style={styles.titleBelowVideo}>
-        //                         <Text style={styles.textTitleBelowVideo}>Squat Exercise</Text>
-        //                     </View>
-        //                     <View style={styles.desBelowVideo}>
-        //                         <View style={styles.minuteDesBelowVideo}>
-        //                             <Image source={require('@assets/images/time.png')} />
-        //                             <Text style={styles.textMinute}>12 minutes</Text>
-        //                         </View>
-        //                         <View style={styles.kcalDesBelowVideo}>
-        //                             <Image source={require('@assets/images/calories.png')} />
-        //                             <Text style={styles.textMinute}>120 Kcal</Text>
-        //                         </View>
-        //                     </View>
-        //                 </View>
-        //             </TouchableOpacity>
-
-        //             <TouchableOpacity style={styles.itemVideo}>
-        //                 <View style={styles.aboveVideoContainer}>
-        //                     <Image style={styles.imageAboveVideo} source={require('@assets/images/womanhelping2.png')} />
-        //                     <TouchableOpacity style={styles.yellowstarImage}>
-        //                         <Image source={require('@assets/images/whitestar.png')} />
-        //                     </TouchableOpacity>
-        //                     <Image style={styles.playvideoImage} source={require('@assets/images/playvideo.png')} />
-        //                 </View>
-
-        //                 <View style={styles.belowVideoContainer}>
-        //                     <View style={styles.titleBelowVideo}>
-        //                         <Text style={styles.textTitleBelowVideo}>Full body Stretching</Text>
-        //                     </View>
-        //                     <View style={styles.desBelowVideo}>
-        //                         <View style={styles.minuteDesBelowVideo}>
-        //                             <Image source={require('@assets/images/time.png')} />
-        //                             <Text style={styles.textMinute}>10 minutes</Text>
-        //                         </View>
-        //                         <View style={styles.kcalDesBelowVideo}>
-        //                             <Image source={require('@assets/images/calories.png')} />
-        //                             <Text style={styles.textMinute}>100 Kcal</Text>
-        //                         </View>
-        //                     </View>
-        //                 </View>
-        //             </TouchableOpacity>
-        //         </View>
-
-        //         <View style={styles.recommendCotainer}>
-        //             <View>
-        //                 <Text style={styles.textRecommend}>Hướng dẫn luyện tập</Text>
-        //             </View>
-        //             <TouchableOpacity style={styles.allcontainer}>
-        //                 <View>
-        //                     <Text style={styles.textAll}>Tất cả</Text>
-        //                 </View>
-        //                 <View>
-        //                     <Image source={require('@assets/images/arrowright.png')} />
-        //                 </View>
-        //             </TouchableOpacity>
-        //         </View>
-
-        //         <View style={styles.tutorialContainer}>
-        //             <FlatList
-        //                 data={data}
-        //                 renderItem={renderData}
-        //                 keyExtractor={(item) => item.id}
-        //                 horizontal={true}
-        //                 showsHorizontalScrollIndicator={false}
-        //                 showsVerticalScrollIndicator={false}
-        //             />
-        //         </View>
-
-        //         <View style={styles.recommendCotainer}>
-        //             <View>
-        //                 <Text style={styles.textRecommend}>Lesmils</Text>
-        //             </View>
-        //             <TouchableOpacity style={styles.allcontainer}>
-        //                 <View>
-        //                     <Text style={styles.textAll}>Tất cả</Text>
-        //                 </View>
-        //                 <View>
-        //                     <Image source={require('@assets/images/arrowright.png')} />
-        //                 </View>
-        //             </TouchableOpacity>
-        //         </View>
-
-        //         <View style={styles.lesmillsContainer}>
-        //             <FlatList
-        //                 data={lesmillsdata}
-        //                 renderItem={renderLesmillsData}
-        //                 keyExtractor={(item) => item.id}
-        //                 horizontal={false}
-        //                 showsHorizontalScrollIndicator={false}
-        //                 showsVerticalScrollIndicator={false}
-        //                 numColumns={2}
-        //             />
-        //         </View>
-
-        //     </ScrollView>
-        // </SafeAreaView>
-    )
-}
+          }
+          ListHeaderComponent={listHeader}
+          ListFooterComponent={
+            tutorials.length === 0 && highlightClasses.length === 0 ? (
+              <View style={styles.stateContainer}>
+                <Text style={styles.stateText}>
+                  Dữ liệu đang được cập nhật. Vui lòng quay lại sau ít phút.
+                </Text>
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            <View style={styles.stateContainer}>
+              <Text style={styles.stateText}>
+                Chưa có nội dung Lesmills. Khám phá thêm trong mục Bài tập nhé!
+              </Text>
+            </View>
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </SafeAreaView>
+  );
+};
 
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-    dateContentLesmills: {
-        fontSize: 11,
-        marginBottom: 5
-    },
-    titleContentLesmills: {
-        fontSize: 13,
-        fontWeight: '500',
-        height: 55
-    },
-    contentLesmills: {
-        marginHorizontal: 5,
-        marginVertical: 5
-    },
-    imageLesmills: {
-        width: '100%',
-        height: 120,
-        borderTopLeftRadius: 12,
-        borderTopRightRadius: 12
-    },
-    itemLesmills: {
-        flex: 1,
-        height: 200,
-        margin: 7,
-        borderRadius: 14,
-        backgroundColor: '#fff',
-        elevation: 2
-    },
-    lesmillsContainer: {
-        marginVertical: 0
-    },
-    dateContent: {
-        fontSize: 11
-    },
-    titleContent: {
-        textTransform: 'uppercase',
-        fontSize: 12,
-        fontWeight: '600',
-        height: 50
-    },
-    contentTutorial: {
-        margin: 10
-    },
-    imageTutorial: {
-        width: 250,
-        height: 120,
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16
-    },
-    itemTutorial: {
-        width: 250,
-        marginEnd: 30,
-        borderWidth: 0.5,
-        borderRadius: 16
-    },
-    tutorialContainer: {
-        marginVertical: 0
-    },
-    textMinute: {
-        fontSize: 12,
-        marginStart: 3
-    },
-    kcalDesBelowVideo: {
-        flexDirection: 'row',
-        alignItems: 'center'
-    },
-    minuteDesBelowVideo: {
-        flexDirection: 'row',
-        alignItems: 'center'
-    },
-    desBelowVideo: {
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    },
-    textTitleBelowVideo: {
-        fontSize: 14,
-        fontWeight: '500'
-    },
-    belowVideoContainer: {
-        marginTop: 4,
-        marginHorizontal: 11
-    },
-    playvideoImage: {
-        position: 'absolute',
-        bottom: -10,
-        right: 7
-    },
-    yellowstarImage: {
-        position: 'absolute',
-        right: 6,
-        top: 6
-    },
-    imageAboveVideo: {
-        width: 160
-    },
-    aboveVideoContainer: {
-        position: 'relative',
-        height: 92
-    },
-    itemVideo: {
-        width: 160,
-        height: 140,
-        borderWidth: 0.5,
-        borderRadius: 16
-    },
-    videoContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    },
-    textAll: {
-        fontSize: 15,
-        fontWeight: '500',
-        marginEnd: 7
-    },
-    textRecommend: {
-        fontSize: 18,
-        fontWeight: '600'
-    },
-    allcontainer: {
-        flexDirection: 'row',
-        alignItems: 'center'
-    },
-    recommendCotainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginVertical: 20
-    },
-    bgImage: {
-        backgroundColor: '#9eeaaeff',
-        padding: 8,
-        borderRadius: 50
-    },
-    itemText: {
-        textAlign: 'center',
-        marginTop: 10,
-        fontWeight: '600',
-        fontSize: 13,
-        color: '#212020'
-    },
-    itemImage: {
-        width: 38,
-        height: 38
-    },
-    itemTabBar: {
-        flex: 1,
-        backgroundColor: '#fff',
-        alignItems: 'center'
-    },
-    tabBar: {
-        flexDirection: 'row',
-        gap: 10
-    },
-    tabBarContainer: {
-        marginTop: 24
-    },
-    headerText: {
-        fontSize: 18,
-        fontWeight: 'bold'
-    },
-    headerRight: {
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        gap: 21
-    },
-    headerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center'
-    },
-    container: {
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#fff',
-        padding: 35
-    }
-})
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111',
+  },
+  headerSubText: {
+    marginTop: 6,
+    color: '#4f4f4f',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  tabBarContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderRadius: 18,
+    backgroundColor: '#e9f8ef',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+  },
+  itemTabBar: {
+    alignItems: 'center',
+    width: '20%',
+  },
+  bgImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  itemImage: {
+    width: 24,
+    height: 24,
+    tintColor: '#08843a',
+  },
+  itemText: {
+    fontSize: 12,
+    color: '#145724',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  sectionWrapper: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#102615',
+  },
+  sectionAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionActionText: {
+    color: '#08843a',
+    fontWeight: '600',
+  },
+  itemTutorial: {
+    width: 200,
+    marginRight: 16,
+    borderRadius: 14,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  imageTutorial: {
+    width: '100%',
+    height: 120,
+  },
+  contentTutorial: {
+    padding: 12,
+    gap: 6,
+  },
+  titleContent: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111',
+  },
+  dateContent: {
+    fontSize: 12,
+    color: '#666',
+  },
+  classCard: {
+    width: 240,
+    marginRight: 16,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  classTimeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#30C451',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  classTimeText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  className: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111',
+  },
+  classSchedule: {
+    fontSize: 14,
+    color: '#333',
+  },
+  classLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  classLocationText: {
+    fontSize: 13,
+    color: '#555',
+  },
+  classSpots: {
+    fontSize: 12,
+    color: '#08843a',
+    fontWeight: '600',
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+    gap: 16,
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+  },
+  itemLesmills: {
+    backgroundColor: '#fff',
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+    width: '48%',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  imageLesmills: {
+    width: '100%',
+    height: 120,
+  },
+  contentLesmills: {
+    padding: 12,
+    gap: 6,
+  },
+  titleContentLesmills: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111',
+  },
+  dateContentLesmills: {
+    fontSize: 12,
+    color: '#666',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 15,
+    color: '#555',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 32,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#d14343',
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#30C451',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryText: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  stateContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+  },
+  stateText: {
+    color: '#555',
+    textAlign: 'center',
+  },
+});

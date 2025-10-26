@@ -88,7 +88,7 @@ const VerifyScreen = ({ navigation }) => {
       // Kiểm tra xem backend có trả về token không
       if (response.ok && response.token) {
         // LƯU TOKEN VÀO BỘ NHỚ
-        login(response.token);
+        await login(response.token, response.user);
 
         // Alert.alert('Thành công!', 'Tài khoản của bạn đã được tạo.', [
         //   { text: 'OK', onPress: () => navigation.navigate('SurveyScreen') },

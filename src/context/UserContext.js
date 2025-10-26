@@ -5,74 +5,93 @@ import { getProfile } from '@api/userApi';
 
 export const UserContext = createContext();
 
-export const UserProvider = (props) => {
-  const { children } = props;
+export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userToken, setUserToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Hàm này chỉ dùng khi ĐĂNG NHẬP hoặc ĐĂNG KÝ
-  const login = useCallback(async (token) => {
+  /**
+   * Persist the token, optionally prime user state, then refresh profile from API.
+   * Dùng khi đăng nhập hoặc xác thực OTP thành công.
+   */
+  const login = useCallback(async (token, initialUser = null) => {
     setIsLoading(true);
     setUserToken(token);
     await AsyncStorage.setItem('token', token);
+
+    if (initialUser) {
+      setUser(prev => ({ ...prev, ...initialUser }));
+    }
+
     try {
       const response = await getProfile();
-      if (response.ok && response.user) {
+      if (response?.ok && response?.user) {
         setUser(response.user);
       }
-    } catch (e) {
-      console.error("Lỗi khi lấy profile sau khi đăng nhập:", e);
+    } catch (error) {
+      console.error('Lỗi khi lấy profile sau khi đăng nhập:', error);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // <<< THÊM: Hàm logout để quản lý việc xóa token và cập nhật state
-  const logout = async () => {
+  /**
+   * Xóa token khỏi AsyncStorage và reset toàn bộ state.
+   */
+  const logout = useCallback(async () => {
     setIsLoading(true);
     setUser(null);
     setUserToken(null);
     await AsyncStorage.removeItem('token');
     setIsLoading(false);
-  };
+  }, []);
 
-  // Hàm này chỉ có một nhiệm vụ: gọi lại getProfile và cập nhật state `user`.
-  // Nó không đụng đến token.
+  /**
+   * Tải lại thông tin profile của user hiện tại.
+   */
   const refreshUser = useCallback(async () => {
-    console.log('Bắt đầu làm mới thông tin người dùng...');
     try {
       const response = await getProfile();
-      if (response.ok && response.user) {
-        console.log('UserContext: Dữ liệu profile mới nhận được từ API:', JSON.stringify(response.user, null, 2));
-        setUser(response.user); // Chỉ cập nhật lại đối tượng user
-        console.log('Làm mới thông tin thành công!');
+      if (response?.ok && response?.user) {
+        setUser(response.user);
       }
-    } catch (e) {
-      console.error("Lỗi khi làm mới thông tin user:", e);
+    } catch (error) {
+      console.error('Lỗi khi làm mới thông tin user:', error);
     }
   }, []);
 
-  // <<< THÊM: Hàm tự động kiểm tra token khi app khởi động
-  // Hàm này chạy một lần duy nhất khi app khởi động
+  /**
+   * Khi app khởi động, kiểm tra xem đã có token lưu sẵn không.
+   */
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
         if (token) {
-          await login(token); // Dùng lại hàm login để lấy cả token và user
+          await login(token);
+          return;
         }
-      } catch (e) {
-        console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', e);
+      } catch (error) {
+        console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
       } finally {
         setIsLoading(false);
       }
     };
+
     checkLoginStatus();
   }, [login]);
 
   return (
-    <UserContext.Provider value={{ user, userToken, isLoading, login, logout, refreshUser }}>
+    <UserContext.Provider
+      value={{
+        user,
+        userToken,
+        isLoading,
+        login,
+        logout,
+        refreshUser,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

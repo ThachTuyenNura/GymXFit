@@ -1,29 +1,46 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const AxiosInstance = (contentType = 'application/json') => {
-    const axiosInstance = axios.create({
-        baseURL: 'https://be.phongnguyen.software/'
-    });
+const DEFAULT_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL
+  || process.env.API_BASE_URL
+  || 'https://be.phongnguyen.software/';
 
-    axiosInstance.interceptors.request.use(
-        async (config) => {
-            const token = await AsyncStorage.getItem('token');
-            config.headers = {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json',
-                'Content-Type': contentType
-            }
-            return config;
-        },
-        err => Promise.reject(err)
-    );
+const createAxiosInstance = (contentType = 'application/json') => {
+  const axiosInstance = axios.create({
+    baseURL: DEFAULT_BASE_URL,
+  });
 
-    axiosInstance.interceptors.response.use(
-        res => res.data,
-        err => Promise.reject(err)
-    );
-    return axiosInstance;
+  axiosInstance.interceptors.request.use(
+    async (config) => {
+      const token = await AsyncStorage.getItem('token');
+      const headers = {
+        Accept: 'application/json',
+      };
+
+      if (contentType) {
+        headers['Content-Type'] = contentType;
+      }
+
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      config.headers = {
+        ...config.headers,
+        ...headers,
+      };
+
+      return config;
+    },
+    error => Promise.reject(error),
+  );
+
+  axiosInstance.interceptors.response.use(
+    response => response.data,
+    error => Promise.reject(error),
+  );
+
+  return axiosInstance;
 };
 
-export default AxiosInstance;
+export default createAxiosInstance;

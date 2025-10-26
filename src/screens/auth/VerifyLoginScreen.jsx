@@ -87,7 +87,7 @@ const VerifyScreen = ({ navigation }) => {
 
             if (response.ok && response.token) {
                 // LƯU TOKEN LẠI! Đây là bước quan trọng nhất
-                login(response.token);
+                await login(response.token, response.user);
 
                 // Alert.alert('Thành công!', 'Đăng nhập thành công.', [
                 //     { text: 'OK', onPress: () => navigation.navigate('Home') } // Chuyển đến màn hình chính

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,57 +7,80 @@ import {
   FlatList,
   Image,
   TextInput,
-  Platform,
+  ActivityIndicator,
 } from 'react-native';
+
+import { getAllVideos } from '@api/userApi';
+
+const formatDuration = (seconds) => {
+  if (!seconds && seconds !== 0) {
+    return '--:--';
+  }
+  const totalSeconds = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainSeconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(remainSeconds).padStart(2, '0')} phút`;
+};
 
 const WorkoutScreen = ({ navigation }) => {
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [favorites, setFavorites] = useState({});
 
-  const workoutData = [
-    {
-      id: '1',
-      title: 'Đấm bốc Cardio',
-      duration: '50 phút',
-      calories: '1300 Kcal',
-      exercises: '5 bài tập',
-      image: require('@assets/images/workout1.jpg'),
-    },
-    {
-      id: '2',
-      title: 'Phát triển cơ – Chân',
-      duration: '12 phút',
-      calories: '1250 Kcal',
-      exercises: '5 bài tập',
-      image: require('@assets/images/workout1.jpg'),
-    },
-    {
-      id: '3',
-      title: 'Nghỉ hoặc vận động nhẹ',
-      duration: '30 phút',
-      calories: '800 Kcal',
-      exercises: '5 bài tập',
-      image: require('@assets/images/workout1.jpg'),
-    },
-  ];
+  const [videos, setVideos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filteredData = workoutData.filter(item =>
-    item.title.toLowerCase().includes(searchText.toLowerCase()),
-  );
+  const fetchVideos = useCallback(async (query = '') => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await getAllVideos({
+        limit: 30,
+        ...(query ? { search: query } : {}),
+      });
+      if (response?.success) {
+        setVideos(response.videos || []);
+      } else {
+        setVideos([]);
+        setError(response?.message || 'Không thể tải danh sách bài tập.');
+      }
+    } catch (err) {
+      setVideos([]);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const toggleFavorite = id => {
-    setFavorites(prev => ({
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchText.trim());
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchText]);
+
+  useEffect(() => {
+    fetchVideos(debouncedSearch);
+  }, [debouncedSearch, fetchVideos]);
+
+  const toggleFavorite = (id) => {
+    setFavorites((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
   };
 
+  const handleNavigateToVideo = (videoId) => {
+    navigation.navigate('WorkoutVideo', { videoId });
+  };
+
   const renderWorkoutItem = ({ item }) => (
     <TouchableOpacity
       style={styles.workoutCard}
-      activeOpacity={0.8}
-      onPress={() => navigation.navigate('WorkoutScreen2', { workout: item })}
+      activeOpacity={0.85}
+      onPress={() => handleNavigateToVideo(item.id)}
     >
       <View style={styles.workoutInfo}>
         <Text style={styles.workoutTitle}>{item.title}</Text>
@@ -68,27 +91,31 @@ const WorkoutScreen = ({ navigation }) => {
               source={require('@assets/images/time.png')}
               style={styles.detailIcon}
             />
-            <Text style={styles.detailText}>{item.duration}</Text>
+            <Text style={styles.detailText}>{formatDuration(item.duration)}</Text>
           </View>
           <View style={styles.detailItem}>
             <Image
               source={require('@assets/images/calories.png')}
               style={styles.detailIcon}
             />
-            <Text style={styles.detailText}>{item.calories}</Text>
+            <Text style={styles.detailText}>{item.estimated_calories} Kcal</Text>
           </View>
           <View style={styles.detailItem}>
             <Image
               source={require('@assets/images/Workout_icon.png')}
               style={styles.detailIcon}
             />
-            <Text style={styles.detailText}>{item.exercises}</Text>
+            <Text style={styles.detailText}>{item.subcategory || item.category}</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.thumbSection}>
-        <Image source={item.image} style={styles.thumbImage} />
+        {item.thumbnail ? (
+          <Image source={{ uri: item.thumbnail }} style={styles.thumbImage} />
+        ) : (
+          <Image source={require('@assets/images/workout1.jpg')} style={styles.thumbImage} />
+        )}
         <TouchableOpacity
           style={styles.itemFavorite}
           onPress={() => toggleFavorite(item.id)}
@@ -106,9 +133,10 @@ const WorkoutScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  const featuredVideo = videos[0];
+
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.innerPadding}>
         <View style={styles.header}>
           <View style={styles.leftHeader}>
@@ -143,7 +171,6 @@ const WorkoutScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Ô tìm kiếm */}
         {searchVisible && (
           <TextInput
             style={styles.searchInput}
@@ -155,250 +182,311 @@ const WorkoutScreen = ({ navigation }) => {
         )}
       </View>
 
-      {/* Cấp độ */}
-      <View style={[styles.levelContainer, styles.innerPadding]}>
-        <TouchableOpacity style={styles.levelButton}>
-          <Text style={styles.levelText}>Người mới</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.levelButton}>
-          <Text style={styles.levelText}>Trung cấp</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.levelButton}>
-          <Text style={styles.levelText}>Nâng cao</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Banner bài tập trong ngày */}
-      <View style={styles.featuredWrapper}>
-        <View style={styles.featuredCard}>
-          <Image
-            source={require('@assets/images/workout1.jpg')}
-            style={styles.featuredImage}
-          />
-          <View style={styles.badgeWrap}>
-            <Text style={styles.badgeText}>Bài tập trong ngày</Text>
-          </View>
-          <View style={styles.featuredOverlay}>
-            <Text style={styles.featuredTitle}>Sức mạnh phần thân trên</Text>
-            <View style={styles.featuredDetails}>
-              <View style={styles.detailItem}>
-                <Image
-                  source={require('@assets/images/time.png')}
-                  style={styles.detailIconWhite}
-                />
-                <Text style={styles.featuredDetailText}>60 phút</Text>
-              </View>
-              <View style={styles.detailItem}>
-                <Image
-                  source={require('@assets/images/calories.png')}
-                  style={styles.detailIconWhite}
-                />
-                <Text style={styles.featuredDetailText}>120 Kcal</Text>
-              </View>
-              <View style={styles.detailItem}>
-                <Image
-                  source={require('@assets/images/Workout_icon.png')}
-                  style={styles.detailIconWhite}
-                />
-                <Text style={styles.featuredDetailText}>5 bài tập</Text>
-              </View>
-            </View>
-
-            {/* Nút sao yêu thích trong banner */}
-            <TouchableOpacity
-              style={styles.featuredFavorite}
-              onPress={() => toggleFavorite('featured')}
-            >
-              <Image
-                source={
-                  favorites['featured']
-                    ? require('@assets/images/yellowstar.png')
-                    : require('@assets/images/favorites_white_star.png')
-                }
-                style={styles.featuredFavoriteIcon}
-              />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#30C451" />
+          <Text style={styles.loadingText}>Đang tải bài tập...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>{error}</Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.levelContainer}>
+            <TouchableOpacity style={styles.levelButton}>
+              <Text style={styles.levelText}>Người mới</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.levelButton}>
+              <Text style={styles.levelText}>Trung cấp</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.levelButton}>
+              <Text style={styles.levelText}>Nâng cao</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
 
-      {/* Danh sách bài tập */}
-      <View style={styles.innerPadding}>
-        <Text style={styles.unlockTitle}>Khám phá tiềm năng của bạn</Text>
-        <FlatList
-          data={filteredData}
-          renderItem={renderWorkoutItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={{ paddingBottom: 90 }}
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
+          {featuredVideo ? (
+            <TouchableOpacity
+              style={styles.featuredWrapper}
+              activeOpacity={0.85}
+              onPress={() => handleNavigateToVideo(featuredVideo.id)}
+            >
+              <View style={styles.featuredCard}>
+                {featuredVideo.thumbnail ? (
+                  <Image
+                    source={{ uri: featuredVideo.thumbnail }}
+                    style={styles.featuredImage}
+                  />
+                ) : (
+                  <Image
+                    source={require('@assets/images/workout1.jpg')}
+                    style={styles.featuredImage}
+                  />
+                )}
+                <View style={styles.badgeWrap}>
+                  <Text style={styles.badgeText}>Bài tập trong ngày</Text>
+                </View>
+                <View style={styles.featuredOverlay}>
+                  <Text style={styles.featuredTitle}>{featuredVideo.title}</Text>
+                  <View style={styles.featuredDetails}>
+                    <View style={styles.detailItem}>
+                      <Image
+                        source={require('@assets/images/time.png')}
+                        style={styles.detailIconWhite}
+                      />
+                      <Text style={styles.featuredDetailText}>
+                        {formatDuration(featuredVideo.duration)}
+                      </Text>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <Image
+                        source={require('@assets/images/calories.png')}
+                        style={styles.detailIconWhite}
+                      />
+                      <Text style={styles.featuredDetailText}>
+                        {featuredVideo.estimated_calories} Kcal
+                      </Text>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <Image
+                        source={require('@assets/images/Workout_icon.png')}
+                        style={styles.detailIconWhite}
+                      />
+                      <Text style={styles.featuredDetailText}>
+                        {featuredVideo.subcategory || featuredVideo.category}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ) : null}
+
+          <FlatList
+            contentContainerStyle={styles.listContent}
+            data={videos.slice(1)}
+            keyExtractor={(item) => item.id}
+            renderItem={renderWorkoutItem}
+            ListEmptyComponent={
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Không tìm thấy bài tập phù hợp.</Text>
+              </View>
+            }
+            showsVerticalScrollIndicator={false}
+          />
+        </>
+      )}
     </View>
   );
 };
 
+export default WorkoutScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'ios' ? 36 : 10,
+    backgroundColor: '#f5f5f5',
   },
-  innerPadding: { paddingHorizontal: 18 },
-
-  // Header
+  innerPadding: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ececec',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
   },
-  leftHeader: { flexDirection: 'row', alignItems: 'center' },
-  rightHeader: { flexDirection: 'row', alignItems: 'center' },
-  backIcon: { width: 22, height: 22, marginRight: 12, resizeMode: 'contain' },
-  headerIcon: { width: 26, height: 26, marginLeft: 14, resizeMode: 'contain' },
-  title: { fontSize: 22, fontWeight: '700', color: '#111' },
-
-  // Search
-  searchInput: {
-    backgroundColor: '#f3f3f3',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 8,
-    fontSize: 16,
-    color: '#000',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-
-  // Level buttons
-  levelContainer: {
+  leftHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    marginBottom: 14,
-  },
-  levelButton: {
-    flex: 1,
-    marginHorizontal: 6,
-    backgroundColor: '#1EB64F',
-    borderRadius: 24,
-    paddingVertical: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#000',
+    gap: 12,
   },
-  levelText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-
-  // Banner
-  featuredWrapper: {
-    backgroundColor: '#20B24A',
-    padding: 12,
-    marginBottom: 18,
-  },
-  featuredCard: { borderRadius: 10, overflow: 'hidden', position: 'relative' },
-  featuredImage: { width: '100%', height: 200, resizeMode: 'cover' },
-  badgeWrap: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
-  },
-  badgeText: { fontSize: 13, fontWeight: '700', color: '#333' },
-  featuredOverlay: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: 12,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderRadius: 10,
-    padding: 12,
-    paddingRight: 56,
-  },
-  featuredTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  featuredDetails: { flexDirection: 'row', alignItems: 'center' },
-  detailItem: { flexDirection: 'row', alignItems: 'center', marginRight: 18 },
-  detailIconWhite: {
+  backIcon: {
     width: 18,
     height: 18,
-    resizeMode: 'contain',
-    tintColor: '#fff',
+    tintColor: '#333',
   },
-  featuredDetailText: {
-    color: '#fff',
-    marginLeft: 6,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  featuredFavorite: {
-    position: 'absolute',
-    right: 12,
-    bottom: 12,
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featuredFavoriteIcon: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
-  },
-
-  // Workout list
-  unlockTitle: {
-    fontSize: 18,
+  title: {
+    fontSize: 22,
     fontWeight: '700',
     color: '#111',
-    marginBottom: 12,
+  },
+  rightHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  headerIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#333',
+  },
+  searchInput: {
+    marginTop: 12,
+    backgroundColor: '#f2f2f2',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    color: '#111',
+    fontSize: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 24,
+  },
+  loadingText: {
+    fontSize: 15,
+    color: '#555',
+    textAlign: 'center',
+  },
+  levelContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+  },
+  levelButton: {
+    backgroundColor: '#e8f8ee',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  levelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#08843a',
+  },
+  featuredWrapper: {
+    paddingHorizontal: 20,
+  },
+  featuredCard: {
+    marginTop: 12,
+    borderRadius: 18,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  featuredImage: {
+    width: '100%',
+    height: 200,
+  },
+  badgeWrap: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    backgroundColor: '#30C451',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  badgeText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  featuredOverlay: {
+    position: 'absolute',
+    inset: 0,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    padding: 20,
+    justifyContent: 'flex-end',
+  },
+  featuredTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 10,
+  },
+  featuredDetails: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  detailIcon: {
+    width: 16,
+    height: 16,
+    tintColor: '#333',
+  },
+  detailIconWhite: {
+    width: 16,
+    height: 16,
+    tintColor: '#fff',
+  },
+  detailText: {
+    fontSize: 13,
+    color: '#333',
+  },
+  featuredDetailText: {
+    fontSize: 13,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 40,
+    gap: 16,
   },
   workoutCard: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#000',
-    padding: 14,
-    marginBottom: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+    gap: 16,
   },
-  workoutInfo: { flex: 1 },
+  workoutInfo: {
+    flex: 1,
+  },
   workoutTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: '#111',
-    marginBottom: 10,
   },
-  workoutDetailsColumn: { flexDirection: 'column', alignItems: 'flex-start' },
-  detailIcon: { width: 20, height: 20, resizeMode: 'contain' },
-  detailText: { marginLeft: 8, fontSize: 13, color: '#333' },
+  workoutDetailsColumn: {
+    marginTop: 12,
+    gap: 8,
+  },
   thumbSection: {
-    width: 100,
-    height: 84,
-    borderRadius: 12,
+    width: 110,
+    height: 110,
+    borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: '#ddd',
-    marginLeft: 12,
     position: 'relative',
   },
-  thumbImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  thumbImage: {
+    width: '100%',
+    height: '100%',
+  },
   itemFavorite: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 24,
-    height: 24,
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
-  itemFavoriteIcon: { width: 22, height: 22, resizeMode: 'contain' },
+  itemFavoriteIcon: {
+    width: 18,
+    height: 18,
+  },
 });
-
-export default WorkoutScreen;

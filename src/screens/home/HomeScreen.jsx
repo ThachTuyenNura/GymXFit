@@ -41,6 +41,18 @@ const formatTimeRange = (start, end) => {
   }
 };
 
+const formatDurationLabel = (rawDuration) => {
+  const numericDuration = Number(rawDuration);
+  if (!Number.isFinite(numericDuration) || numericDuration <= 0) return null;
+
+  const totalSeconds = Math.round(numericDuration);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  const secondsLabel = seconds < 10 ? `0${seconds}` : `${seconds}`;
+  return `${minutes} phút ${secondsLabel} giây`;
+};
+
 const getViewCount = (video) => {
   if (!video) return 0;
   const possibleKeys = [
@@ -69,7 +81,161 @@ const getViewCount = (video) => {
   return 0;
 };
 
-const QuickActions = ({ navigation }) => (
+const CATEGORY_CONFIG = {
+  workout: {
+    label: 'Workout',
+    subcategories: [
+      'Upper Body',
+      'Lower Body',
+      'Back',
+      'Legs',
+      'Full Body',
+      'Core',
+      'Chest',
+      'Shoulders',
+      'Arms',
+      'Glutes',
+    ],
+  },
+  cardio: {
+    label: 'Cardio',
+    subcategories: [
+      'Running',
+      'Cycling',
+      'Jump Rope',
+      'HIIT',
+      'Dance',
+      'Swimming',
+      'Rowing',
+      'Elliptical',
+    ],
+  },
+  stretching: {
+    label: 'Stretching',
+    subcategories: [
+      'Flexibility',
+      'Mobility',
+      'Dynamic Stretch',
+      'Static Stretch',
+      'Yoga Stretches',
+      'Recovery',
+    ],
+  },
+  nutrition: {
+    label: 'Nutrition',
+    subcategories: [
+      'Meal Prep',
+      'Recipes',
+      'Nutrition Tips',
+      'Supplements',
+      'Diet Plans',
+      'Hydration',
+    ],
+  },
+  yoga: {
+    label: 'Yoga',
+    subcategories: [
+      'Hatha Yoga',
+      'Vinyasa Yoga',
+      'Power Yoga',
+      'Yin Yoga',
+      'Ashtanga Yoga',
+      'Beginner Yoga',
+    ],
+  },
+  other: {
+    label: 'Other',
+    subcategories: ['General', 'Tips', 'Motivation', 'Education'],
+  },
+};
+
+const DEFAULT_CATEGORY_KEY = 'other';
+const CATEGORY_ORDER = ['workout', 'cardio', 'stretching', 'nutrition', 'yoga', 'other'];
+
+const normalizeKey = (value) =>
+  typeof value === 'string' ? value.trim().toLowerCase() : '';
+
+const buildSubcategoryMap = (list) =>
+  list.reduce((acc, name) => {
+    acc[normalizeKey(name)] = name;
+    return acc;
+  }, {});
+
+Object.keys(CATEGORY_CONFIG).forEach((key) => {
+  CATEGORY_CONFIG[key].subcategoryMap = buildSubcategoryMap(
+    CATEGORY_CONFIG[key].subcategories || [],
+  );
+});
+
+const resolveCategoryInfo = (categoryRaw) => {
+  const normalized = normalizeKey(categoryRaw);
+
+  if (normalized) {
+    for (const key of Object.keys(CATEGORY_CONFIG)) {
+      const config = CATEGORY_CONFIG[key];
+      if (normalized === key || normalized === normalizeKey(config.label)) {
+        return { key, label: config.label };
+      }
+    }
+  }
+
+  const fallbackConfig = CATEGORY_CONFIG[DEFAULT_CATEGORY_KEY];
+  return { key: DEFAULT_CATEGORY_KEY, label: fallbackConfig.label };
+};
+
+const resolveSubcategoryInfo = (categoryKey, subcategoryRaw) => {
+  const config = CATEGORY_CONFIG[categoryKey];
+  if (!config) return { key: '', label: '' };
+
+  const normalized = normalizeKey(subcategoryRaw);
+  if (normalized && config.subcategoryMap[normalized]) {
+    const label = config.subcategoryMap[normalized];
+    return { key: normalized, label };
+  }
+
+  if (!normalized && categoryKey === 'other') {
+    const defaultLabel = 'General';
+    return { key: normalizeKey(defaultLabel), label: defaultLabel };
+  }
+
+  return { key: '', label: '' };
+};
+
+const getVideoCategoryInfo = (video) => {
+  let categoryResult = resolveCategoryInfo(video?.category);
+  let subcategoryResult = resolveSubcategoryInfo(categoryResult.key, video?.subcategory);
+
+  if (!subcategoryResult.label && video?.subcategory) {
+    const normalizedSub = normalizeKey(video.subcategory);
+    for (const key of Object.keys(CATEGORY_CONFIG)) {
+      const candidateConfig = CATEGORY_CONFIG[key];
+      if (candidateConfig.subcategoryMap[normalizedSub]) {
+        categoryResult = { key, label: candidateConfig.label };
+        subcategoryResult = {
+          key: normalizedSub,
+          label: candidateConfig.subcategoryMap[normalizedSub],
+        };
+        break;
+      }
+    }
+
+    if (!subcategoryResult.label) {
+      subcategoryResult = resolveSubcategoryInfo(categoryResult.key, '');
+    }
+  }
+
+  const sectionKey = `${categoryResult.key}__${subcategoryResult.key || 'none'}`;
+
+  return {
+    categoryKey: categoryResult.key,
+    categoryLabel: categoryResult.label,
+    subcategoryKey: subcategoryResult.key,
+    subcategoryLabel: subcategoryResult.label,
+    sectionKey,
+  };
+};
+
+const QuickActions = ({ navigation, onNavigateBooking, onNavigateTrainer }) => (
   <View style={styles.tabBarContainer}>
     <View style={styles.tabBar}>
       <TouchableOpacity
@@ -77,14 +243,20 @@ const QuickActions = ({ navigation }) => (
         onPress={() => navigation.navigate('WorkoutScreen')}
       >
         <View style={styles.bgImage}>
-          <Image style={[styles.itemImage, { tintColor: '#145724' }]} source={require('@assets/images/cucta.png')} />
+          <MaterialCommunityIcons name="dumbbell" size={26} color="#08843a" />
         </View>
         <Text style={styles.itemText}>Tập luyện</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.itemTabBar}
-        onPress={() => navigation.navigate('SearchCalendarScreen')}
+        onPress={() => {
+          if (onNavigateBooking) {
+            onNavigateBooking();
+          } else {
+            navigation.navigate('SearchCalendarScreen');
+          }
+        }}
       >
         <View style={styles.bgImage}>
           <MaterialCommunityIcons name="calendar-plus" size={26} color="#08843a" />
@@ -94,7 +266,13 @@ const QuickActions = ({ navigation }) => (
 
       <TouchableOpacity
         style={styles.itemTabBar}
-        onPress={() => navigation.navigate('SearchCalendarScreen')}
+        onPress={() => {
+          if (onNavigateTrainer) {
+            onNavigateTrainer();
+          } else {
+            navigation.navigate('SearchCalendarScreen');
+          }
+        }}
       >
         <View style={styles.bgImage}>
           <MaterialCommunityIcons name="account-tie" size={26} color="#08843a" />
@@ -117,7 +295,7 @@ const QuickActions = ({ navigation }) => (
         onPress={() => navigation.navigate('CardMembershipScreen')}
       >
         <View style={styles.bgImage}>
-          <Image style={styles.itemImage} source={require('@assets/images/cart.png')} />
+          <MaterialCommunityIcons name="cart-outline" size={26} color="#08843a" />
         </View>
         <Text style={styles.itemText}>Mua dịch vụ</Text>
       </TouchableOpacity>
@@ -125,44 +303,26 @@ const QuickActions = ({ navigation }) => (
   </View>
 );
 
-const TutorialCarousel = ({ title, data, onPressItem, onPressSeeAll }) => (
+const VideoCarousel = ({ title, data, onPressVideo, onPressSeeAll }) => (
   <View style={styles.sectionWrapper}>
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      <TouchableOpacity style={styles.sectionAction} onPress={onPressSeeAll}>
-        <Text style={styles.sectionActionText}>Tất cả</Text>
-        <Image source={require('@assets/images/arrowright.png')} />
-      </TouchableOpacity>
+      {onPressSeeAll ? (
+        <TouchableOpacity style={styles.sectionAction} onPress={onPressSeeAll}>
+          <Text style={styles.sectionActionText}>Tất cả</Text>
+          <MaterialCommunityIcons name="chevron-right" size={20} color="#08843a" />
+        </TouchableOpacity>
+      ) : null}
     </View>
 
     <FlatList
       data={data}
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          style={styles.itemTutorial}
-          activeOpacity={0.85}
-          onPress={() => onPressItem(item)}
-        >
-          <View>
-            {item.thumbnail ? (
-              <Image style={styles.imageTutorial} source={{ uri: item.thumbnail }} />
-            ) : (
-              <Image style={styles.imageTutorial} source={require('@assets/images/tutorial1.jpg')} />
-            )}
-          </View>
-          <View style={styles.contentTutorial}>
-            <Text style={styles.titleContent} numberOfLines={2}>
-              {item.title}
-            </Text>
-            <Text style={styles.dateContent}>
-              {item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : 'Tập luyện'}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      )}
+      renderItem={({ item }) => <VideoCard video={item} onPress={onPressVideo} />}
       keyExtractor={(item) => item.id}
       horizontal
       showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.horizontalListContent}
+      ItemSeparatorComponent={() => <View style={styles.horizontalSpacer} />}
     />
   </View>
 );
@@ -176,7 +336,7 @@ const HighlightClasses = ({ classes, onPressClass }) => {
         <Text style={styles.sectionTitle}>Lớp sắp diễn ra</Text>
         <TouchableOpacity style={styles.sectionAction} onPress={() => onPressClass()}>
           <Text style={styles.sectionActionText}>Đặt lịch</Text>
-          <Image source={require('@assets/images/arrowright.png')} />
+          <MaterialCommunityIcons name="chevron-right" size={20} color="#08843a" />
         </TouchableOpacity>
       </View>
 
@@ -212,69 +372,89 @@ const HighlightClasses = ({ classes, onPressClass }) => {
   );
 };
 
-const VideoCard = ({ video, onPress }) => (
-  <TouchableOpacity
-    style={styles.videoCard}
-    activeOpacity={0.85}
-    onPress={() => onPress(video)}
-  >
-    <View>
-      {video.thumbnail ? (
-        <Image style={styles.videoCardImage} source={{ uri: video.thumbnail }} />
-      ) : (
-        <Image style={styles.videoCardImage} source={require('@assets/images/lesmils1.jpg')} />
-      )}
-    </View>
-    <View style={styles.videoCardContent}>
-      <Text style={styles.videoCardTitle} numberOfLines={2}>
-        {video.title}
-      </Text>
-      <Text style={styles.videoCardMeta} numberOfLines={1}>
-        {video.estimated_calories ? `${video.estimated_calories} Kcal • ` : ''}
-        {video.subcategory || video.category || 'Bài tập'}
-      </Text>
-    </View>
-  </TouchableOpacity>
-);
+const VideoCard = ({ video, onPress }) => {
+  const { categoryLabel, subcategoryLabel } = getVideoCategoryInfo(video);
+  const subtitleParts = [categoryLabel];
+  if (subcategoryLabel && subcategoryLabel !== categoryLabel) {
+    subtitleParts.push(subcategoryLabel);
+  }
+  const subtitle = subtitleParts.filter(Boolean).join(' • ') || categoryLabel || 'Other';
 
-const MostWatchedSection = ({ videos, onPressVideo }) => {
-  if (!videos.length) return null;
+  const durationLabel = formatDurationLabel(video.duration);
+  const caloriesValue = Number(video.estimated_calories);
+  const caloriesLabel =
+    Number.isFinite(caloriesValue) && caloriesValue > 0 ? `${Math.round(caloriesValue)} kcal` : null;
+  const hasMeta = Boolean(durationLabel || caloriesLabel);
 
   return (
-    <View style={styles.sectionWrapper}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Xem nhiều nhất</Text>
+    <TouchableOpacity
+      style={styles.videoCard}
+      activeOpacity={0.85}
+      onPress={() => onPress(video)}
+    >
+      <View style={styles.videoCardImageWrapper}>
+        {video.thumbnail ? (
+          <Image style={styles.videoCardImage} source={{ uri: video.thumbnail }} />
+        ) : (
+          <Image style={styles.videoCardImage} source={require('@assets/images/lesmils1.jpg')} />
+        )}
+        <View style={styles.videoBadge}>
+          <MaterialCommunityIcons name="play-circle" size={14} color="#fff" />
+          <Text style={styles.videoBadgeText}>Xem ngay</Text>
+        </View>
       </View>
-      <FlatList
-        horizontal
-        data={videos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <VideoCard video={item} onPress={onPressVideo} />}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.horizontalListContent}
-        ItemSeparatorComponent={() => <View style={styles.horizontalSpacer} />}
-      />
-    </View>
+
+      <View style={styles.videoCardContent}>
+        <Text style={styles.videoCardTitle} numberOfLines={2}>
+          {video.title}
+        </Text>
+        <Text style={styles.videoCardSubtitle} numberOfLines={1}>
+          {subtitle}
+        </Text>
+
+        {hasMeta ? (
+          <View style={styles.videoMetaRow}>
+            {durationLabel ? (
+              <View style={styles.videoMetaItem}>
+                <MaterialCommunityIcons name="timer-outline" size={14} color="#3a6043" />
+                <Text style={styles.videoMetaText}>{durationLabel}</Text>
+              </View>
+            ) : null}
+            {caloriesLabel ? (
+              <View style={styles.videoMetaItem}>
+                <MaterialCommunityIcons name="fire" size={14} color="#e86a33" />
+                <Text style={styles.videoMetaText}>{caloriesLabel}</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+    </TouchableOpacity>
   );
 };
 
-const CategorySection = ({ title, videos, onPressVideo }) => {
-  if (!videos.length) return null;
-
+const CategorySection = ({ categoryLabel, videos, onPressVideo }) => {
+  const hasVideos = Boolean(videos?.length);
   return (
     <View style={styles.sectionWrapper}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text style={styles.sectionTitle}>{categoryLabel}</Text>
       </View>
-      <FlatList
-        horizontal
-        data={videos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <VideoCard video={item} onPress={onPressVideo} />}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.horizontalListContent}
-        ItemSeparatorComponent={() => <View style={styles.horizontalSpacer} />}
-      />
+      {hasVideos ? (
+        <FlatList
+          horizontal
+          data={videos}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <VideoCard video={item} onPress={onPressVideo} />}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalListContent}
+          ItemSeparatorComponent={() => <View style={styles.horizontalSpacer} />}
+        />
+      ) : (
+        <View style={styles.categoryEmpty}>
+          <Text style={styles.categoryEmptyText}>Nội dung đang được cập nhật cho hạng mục này.</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -283,7 +463,6 @@ const HomeScreen = ({ navigation }) => {
   const { user } = useContext(UserContext);
   const userName = user?.name || user?.phone || 'hội viên';
 
-  const [tutorials, setTutorials] = useState([]);
   const [videos, setVideos] = useState([]);
   const [highlightClasses, setHighlightClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -307,10 +486,8 @@ const HomeScreen = ({ navigation }) => {
       if (videosResponse?.success) {
         const fetchedVideos = videosResponse.videos || [];
         setVideos(fetchedVideos);
-        setTutorials(fetchedVideos.slice(0, 6));
       } else {
         setVideos([]);
-        setTutorials([]);
         setError(videosResponse?.message || 'Không thể tải bài tập.');
       }
 
@@ -321,7 +498,6 @@ const HomeScreen = ({ navigation }) => {
       }
     } catch (err) {
       setError(err.message);
-      setTutorials([]);
       setVideos([]);
       setHighlightClasses([]);
     } finally {
@@ -347,47 +523,79 @@ const HomeScreen = ({ navigation }) => {
     [navigation],
   );
 
-  const handlePressClass = useCallback(
-    (classItem) => {
-      if (classItem?.classId) {
-        navigation.navigate('SearchCalendarScreen', { highlightClassId: classItem.classId });
+  const navigateToSearchCalendar = useCallback(
+    (params) => {
+      const targetParams = params ? { ...params } : {};
+      const parentNavigator = navigation.getParent();
+      if (parentNavigator) {
+        parentNavigator.navigate({
+          name: 'SearchCalendarScreen',
+          params: targetParams,
+          merge: false,
+        });
       } else {
-        navigation.navigate('SearchCalendarScreen');
+        navigation.navigate('SearchCalendarScreen', targetParams);
       }
     },
     [navigation],
   );
 
-  const mostWatchedVideos = useMemo(() => {
-    if (!videos.length) return [];
-    return [...videos]
-      .sort((a, b) => getViewCount(b) - getViewCount(a))
-      .slice(0, Math.min(6, videos.length));
-  }, [videos]);
+  const handleNavigateBooking = useCallback(
+    () => navigateToSearchCalendar(),
+    [navigateToSearchCalendar],
+  );
 
-  const categorizedVideos = useMemo(() => {
-    if (!videos.length) return {};
-    const topIds = new Set(mostWatchedVideos.map((video) => video.id));
-    return videos.reduce((acc, video) => {
-      if (topIds.has(video.id)) return acc;
-      const categoryKey = video.category || 'Khác';
-      if (!acc[categoryKey]) {
-        acc[categoryKey] = [];
+  const handleNavigateTrainer = useCallback(
+    () => navigateToSearchCalendar(),
+    [navigateToSearchCalendar],
+  );
+
+  const handlePressClass = useCallback(
+    (classItem) => {
+      if (classItem?.classId) {
+        navigateToSearchCalendar({ highlightClassId: classItem.classId });
+      } else {
+        navigateToSearchCalendar();
       }
-      acc[categoryKey].push(video);
-      return acc;
-    }, {});
-  }, [videos, mostWatchedVideos]);
+    },
+    [navigateToSearchCalendar],
+  );
 
-  const categoryEntries = useMemo(
+  const videoCategoryPairs = useMemo(
     () =>
-      Object.entries(categorizedVideos)
-        .map(([categoryName, categoryVideos]) => [
-          categoryName,
-          [...categoryVideos].sort((a, b) => getViewCount(b) - getViewCount(a)),
-        ])
-        .sort((a, b) => a[0].localeCompare(b[0], 'vi', { sensitivity: 'base' })),
-    [categorizedVideos],
+      videos.map((video) => ({
+        video,
+        info: getVideoCategoryInfo(video),
+        viewCount: getViewCount(video),
+      })),
+    [videos],
+  );
+
+  const mostWatchedVideos = useMemo(() => {
+    if (!videoCategoryPairs.length) return [];
+    return [...videoCategoryPairs]
+      .sort((a, b) => b.viewCount - a.viewCount)
+      .slice(0, Math.min(6, videoCategoryPairs.length))
+      .map((entry) => entry.video);
+  }, [videoCategoryPairs]);
+
+  const categorySections = useMemo(
+    () =>
+      CATEGORY_ORDER.map((categoryKey) => {
+        const config = CATEGORY_CONFIG[categoryKey];
+        const videosByCategory = videoCategoryPairs
+          .filter(({ info }) => info.categoryKey === categoryKey)
+          .sort((a, b) => b.viewCount - a.viewCount)
+          .map((entry) => entry.video);
+
+        return {
+          key: `category_${categoryKey}`,
+          categoryKey,
+          categoryLabel: config.label,
+          videos: videosByCategory,
+        };
+      }),
+    [videoCategoryPairs],
   );
 
   const listHeader = (
@@ -400,23 +608,28 @@ const HomeScreen = ({ navigation }) => {
 
         <View style={styles.headerRight}>
           <TouchableOpacity onPress={() => navigation.navigate('WorkoutScreen')}>
-            <Image source={require('@assets/images/Search.png')} />
+            <MaterialCommunityIcons name="magnify" size={24} color="#145724" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
-            <Image source={require('@assets/images/Notifications.png')} />
+            <MaterialCommunityIcons name="bell-outline" size={24} color="#145724" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <QuickActions navigation={navigation} />
-      <HighlightClasses classes={highlightClasses} onPressClass={handlePressClass} />
-      <TutorialCarousel
-        title="Hướng dẫn luyện tập"
-        data={tutorials}
-        onPressItem={handlePressVideo}
-        onPressSeeAll={() => navigation.navigate('WorkoutScreen')}
+      <QuickActions
+        navigation={navigation}
+        onNavigateBooking={handleNavigateBooking}
+        onNavigateTrainer={handleNavigateTrainer}
       />
-      <MostWatchedSection videos={mostWatchedVideos} onPressVideo={handlePressVideo} />
+      <HighlightClasses classes={highlightClasses} onPressClass={handlePressClass} />
+      {mostWatchedVideos.length ? (
+        <VideoCarousel
+          title="Xem nhiều nhất"
+          data={mostWatchedVideos}
+          onPressVideo={handlePressVideo}
+          onPressSeeAll={() => navigation.navigate('WorkoutScreen')}
+        />
+      ) : null}
     </View>
   );
 
@@ -440,12 +653,12 @@ const HomeScreen = ({ navigation }) => {
         </View>
       ) : (
         <FlatList
-          data={categoryEntries}
-          keyExtractor={([categoryName]) => categoryName}
-          renderItem={({ item: [categoryName, categoryVideos] }) => (
+          data={categorySections}
+          keyExtractor={(item) => item.key}
+          renderItem={({ item }) => (
             <CategorySection
-              title={categoryName}
-              videos={categoryVideos}
+              categoryLabel={item.categoryLabel}
+              videos={item.videos}
               onPressVideo={handlePressVideo}
             />
           )}
@@ -511,27 +724,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderRadius: 18,
-    backgroundColor: '#e9f8ef',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#dcefe2',
     paddingVertical: 12,
     paddingHorizontal: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   itemTabBar: {
     alignItems: 'center',
     width: '20%',
+    gap: 6,
   },
   bgImage: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#fff',
+    backgroundColor: '#e5f5eb',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
-  },
-  itemImage: {
-    width: 24,
-    height: 24,
-    tintColor: '#08843a',
   },
   itemText: {
     fontSize: 12,
@@ -540,7 +756,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sectionWrapper: {
-    marginTop: 16,
+    marginTop: 24,
     paddingHorizontal: 20,
   },
   sectionHeader: {
@@ -563,34 +779,20 @@ const styles = StyleSheet.create({
     color: '#08843a',
     fontWeight: '600',
   },
-  itemTutorial: {
-    width: 200,
-    marginRight: 16,
-    borderRadius: 14,
+  categoryEmpty: {
+    paddingVertical: 24,
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e1ece6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  imageTutorial: {
-    width: '100%',
-    height: 120,
-  },
-  contentTutorial: {
-    padding: 12,
-    gap: 6,
-  },
-  titleContent: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111',
-  },
-  dateContent: {
-    fontSize: 12,
-    color: '#666',
+  categoryEmptyText: {
+    fontSize: 13,
+    color: '#4f4f4f',
+    textAlign: 'center',
   },
   classCard: {
     width: 240,
@@ -641,40 +843,84 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 40,
+    paddingTop: 16,
   },
   horizontalListContent: {
-    paddingRight: 4,
+    paddingHorizontal: 20,
   },
   horizontalSpacer: {
     width: 16,
   },
   videoCard: {
-    width: 200,
+    width: 220,
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e1ece6',
     overflow: 'hidden',
+    paddingBottom: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
     elevation: 2,
+  },
+  videoCardImageWrapper: {
+    width: '100%',
+    height: 140,
+    position: 'relative',
   },
   videoCardImage: {
     width: '100%',
-    height: 120,
+    height: '100%',
+    backgroundColor: '#f4f6f5',
+  },
+  videoBadge: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(48, 196, 81, 0.9)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  videoBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   videoCardContent: {
-    padding: 12,
-    gap: 6,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    gap: 8,
   },
   videoCardTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#111',
   },
-  videoCardMeta: {
+  videoCardSubtitle: {
+    fontSize: 13,
+    color: '#3a6043',
+    fontWeight: '600',
+  },
+  videoMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 4,
+  },
+  videoMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  videoMetaText: {
     fontSize: 12,
-    color: '#666',
+    color: '#4f4f4f',
   },
   loadingContainer: {
     flex: 1,

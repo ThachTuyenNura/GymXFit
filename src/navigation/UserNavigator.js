@@ -16,13 +16,17 @@ import WorkoutScreen from '@screens/workouts/WorkoutScreen';
 import WorkoutScreen2 from '@screens/workouts/WorkoutScreen2';
 import WorkoutVideoScreen from '@screens/video/WorkoutVideoScreen';
 import UpdateProfileScreen from '@screens/profile/UpdateProfileScreen';
+import BookScreen from '@screens/booking/BookScreen';
+import CalendarScreen from '@screens/booking/CalendarScreen'
+import SearchCalendarScreen from '@screens/booking/SearchCalendarScreen';
+
 
 const Stack = createNativeStackNavigator();
 
 const UserNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="VerifyRegisterScreen"
+      initialRouteName="SearchCalendarScreen"
       screenOptions={{
         headerShown: false,
       }}
@@ -45,6 +49,12 @@ const UserNavigator = () => {
       <Stack.Screen name="WorkoutScreen2" component={WorkoutScreen2} />
       <Stack.Screen name="WorkoutVideo" component={WorkoutVideoScreen} />
       <Stack.Screen name="UpdateProfile" component={UpdateProfileScreen} />
+      <Stack.Screen name="BookScreen" component={BookScreen} />
+      <Stack.Screen name="CalendarScreen" component={CalendarScreen} />
+      <Stack.Screen
+        name="SearchCalendarScreen"
+        component={SearchCalendarScreen}
+      />
     </Stack.Navigator>
   );
 };

@@ -10,19 +10,26 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-
 import { getMyEnrollments } from '@api/classesApi';
 
 const STATUS_META = {
-  active: { label: 'Sắp diễn ra', style: 'badgeActive' },
-  completed: { label: 'Hoàn thành', style: 'badgeCompleted' },
-  cancelled: { label: 'Đã hủy', style: 'badgeCancelled' },
+  active: { label: 'Sắp diễn ra', style: 'badgeActive', icon: 'clock-outline' },
+  completed: {
+    label: 'Hoàn thành',
+    style: 'badgeCompleted',
+    icon: 'check-circle-outline',
+  },
+  cancelled: {
+    label: 'Đã hủy',
+    style: 'badgeCancelled',
+    icon: 'close-circle-outline',
+  },
 };
 
-const formatDateLabel = (value) => {
+const formatDateLabel = value => {
   try {
     return new Date(value).toLocaleDateString('vi-VN', {
       weekday: 'short',
@@ -38,7 +45,7 @@ const formatTimeRange = (start, end) => {
   try {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    const formatter = (date) =>
+    const formatter = date =>
       date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     return `${formatter(startDate)} - ${formatter(endDate)}`;
   } catch {
@@ -53,21 +60,27 @@ const EnrollmentCard = ({ enrollment }) => {
   return (
     <View style={styles.enrollmentCard}>
       <View style={styles.cardHeader}>
-        <Text style={styles.className}>{classInfo.name || 'Lớp học GymXFit'}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Icon name="dumbbell" size={22} color="#30C451" />
+          <Text style={styles.className}>
+            {classInfo.name || 'Lớp học GymXFit'}
+          </Text>
+        </View>
         <View style={[styles.badge, styles[statusMeta.style]]}>
+          <Icon name={statusMeta.icon} size={14} color="#fff" />
           <Text style={styles.badgeText}>{statusMeta.label}</Text>
         </View>
       </View>
 
       <View style={styles.cardRow}>
-        <Icon name="event" size={20} color="#30C451" />
+        <Icon name="calendar-month" size={20} color="#30C451" />
         <Text style={styles.cardText}>
           {formatDateLabel(classInfo.startTime || enrollment.enrolledAt)}
         </Text>
       </View>
 
       <View style={styles.cardRow}>
-        <Icon name="schedule" size={20} color="#30C451" />
+        <Icon name="clock-outline" size={20} color="#30C451" />
         <Text style={styles.cardText}>
           {formatTimeRange(classInfo.startTime, classInfo.endTime)}
         </Text>
@@ -75,20 +88,22 @@ const EnrollmentCard = ({ enrollment }) => {
 
       {classInfo.location ? (
         <View style={styles.cardRow}>
-          <Icon name="location-on" size={20} color="#30C451" />
+          <Icon name="map-marker-outline" size={20} color="#30C451" />
           <Text style={styles.cardText}>{classInfo.location}</Text>
         </View>
       ) : null}
 
       {classInfo.instructor?.name ? (
         <View style={styles.cardRow}>
-          <Icon name="person-outline" size={20} color="#30C451" />
+          <Icon name="account-outline" size={20} color="#30C451" />
           <Text style={styles.cardText}>{classInfo.instructor.name}</Text>
         </View>
       ) : null}
 
       <View style={styles.cardFooter}>
+        <Icon name="account-group" size={18} color="#30C451" />
         <Text style={styles.capacityText}>
+          {'  '}
           {classInfo.currentEnrollment}/{classInfo.capacity} học viên
         </Text>
       </View>
@@ -103,11 +118,8 @@ const CalendarScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadEnrollments = useCallback(async (isRefreshing = false) => {
-    if (isRefreshing) {
-      setRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
+    if (isRefreshing) setRefreshing(true);
+    else setIsLoading(true);
     setError(null);
 
     try {
@@ -127,11 +139,8 @@ const CalendarScreen = ({ navigation }) => {
       setEnrollments([]);
       setError(err.message);
     } finally {
-      if (isRefreshing) {
-        setRefreshing(false);
-      } else {
-        setIsLoading(false);
-      }
+      if (isRefreshing) setRefreshing(false);
+      else setIsLoading(false);
     }
   }, []);
 
@@ -141,20 +150,27 @@ const CalendarScreen = ({ navigation }) => {
     }, [loadEnrollments]),
   );
 
-  const handleRefresh = useCallback(() => loadEnrollments(true), [loadEnrollments]);
+  const handleRefresh = useCallback(
+    () => loadEnrollments(true),
+    [loadEnrollments],
+  );
 
   const upcomingEnrollments = useMemo(() => {
     const now = Date.now();
-    return enrollments.filter((item) => {
-      const startTime = new Date(item.class?.startTime || item.enrolledAt).getTime();
+    return enrollments.filter(item => {
+      const startTime = new Date(
+        item.class?.startTime || item.enrolledAt,
+      ).getTime();
       return startTime >= now || item.status === 'active';
     });
   }, [enrollments]);
 
   const pastEnrollments = useMemo(() => {
     const now = Date.now();
-    return enrollments.filter((item) => {
-      const startTime = new Date(item.class?.startTime || item.enrolledAt).getTime();
+    return enrollments.filter(item => {
+      const startTime = new Date(
+        item.class?.startTime || item.enrolledAt,
+      ).getTime();
       return startTime < now && item.status !== 'active';
     });
   }, [enrollments]);
@@ -164,8 +180,11 @@ const CalendarScreen = ({ navigation }) => {
       <StatusBar backgroundColor="#30C451" barStyle="light-content" />
 
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={24} color="white" />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Icon name="arrow-left" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Lịch học của bạn</Text>
         <View style={styles.headerRight} />
@@ -190,7 +209,8 @@ const CalendarScreen = ({ navigation }) => {
           <View style={styles.heroOverlay}>
             <Text style={styles.heroTitle}>Theo dõi tiến trình tập luyện</Text>
             <Text style={styles.heroSubtitle}>
-              Lịch học được đồng bộ với hệ thống Admin giúp bạn chủ động thời gian tập.
+              Lịch học được đồng bộ với hệ thống giúp bạn chủ động thời gian
+              tập.
             </Text>
           </View>
         </View>
@@ -208,12 +228,14 @@ const CalendarScreen = ({ navigation }) => {
             </View>
           ) : upcomingEnrollments.length === 0 ? (
             <View style={styles.stateContainer}>
+              <Icon name="calendar-remove-outline" size={28} color="#ccc" />
               <Text style={styles.stateText}>
-                Bạn chưa có lịch học nào sắp diễn ra. Đặt lịch trong mục Đặt lịch nhé!
+                Bạn chưa có lịch học nào sắp diễn ra. Đặt lịch trong mục Đặt
+                lịch nhé!
               </Text>
             </View>
           ) : (
-            upcomingEnrollments.map((item) => (
+            upcomingEnrollments.map(item => (
               <EnrollmentCard key={item.enrollmentId} enrollment={item} />
             ))
           )}
@@ -227,10 +249,13 @@ const CalendarScreen = ({ navigation }) => {
             </View>
           ) : pastEnrollments.length === 0 ? (
             <View style={styles.stateContainer}>
-              <Text style={styles.stateText}>Bạn sẽ thấy lịch đã học tại đây.</Text>
+              <Icon name="calendar-check-outline" size={28} color="#ccc" />
+              <Text style={styles.stateText}>
+                Bạn sẽ thấy lịch đã học tại đây.
+              </Text>
             </View>
           ) : (
-            pastEnrollments.map((item) => (
+            pastEnrollments.map(item => (
               <EnrollmentCard key={item.enrollmentId} enrollment={item} />
             ))
           )}
@@ -243,10 +268,7 @@ const CalendarScreen = ({ navigation }) => {
 export default CalendarScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: {
     backgroundColor: '#30C451',
     flexDirection: 'row',
@@ -255,21 +277,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     justifyContent: 'space-between',
   },
-  backButton: {
-    width: 40,
-    alignItems: 'flex-start',
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  headerRight: {
-    width: 40,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
+  backButton: { width: 40, alignItems: 'flex-start' },
+  headerTitle: { color: 'white', fontSize: 18, fontWeight: '700' },
+  headerRight: { width: 40 },
+  scrollContainer: { flex: 1 },
   heroSection: {
     margin: 16,
     marginBottom: 0,
@@ -277,10 +288,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  heroImage: {
-    width: '100%',
-    height: 180,
-  },
+  heroImage: { width: '100%', height: 180 },
   heroOverlay: {
     position: 'absolute',
     inset: 0,
@@ -288,27 +296,15 @@ const styles = StyleSheet.create({
     padding: 16,
     justifyContent: 'flex-end',
   },
-  heroTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
-  },
+  heroTitle: { color: '#fff', fontSize: 20, fontWeight: '700' },
   heroSubtitle: {
     marginTop: 6,
     color: '#f8f8f8',
     fontSize: 14,
     lineHeight: 20,
   },
-  section: {
-    marginTop: 20,
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#102615',
-  },
+  section: { marginTop: 20, paddingHorizontal: 16, gap: 12 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#102615' },
   stateContainer: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -337,49 +333,29 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
   },
-  className: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111',
-  },
+  className: { fontSize: 18, fontWeight: '700', color: '#111' },
   badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  badgeActive: {
-    backgroundColor: '#34d399',
-  },
-  badgeCompleted: {
-    backgroundColor: '#60a5fa',
-  },
-  badgeCancelled: {
-    backgroundColor: '#f97316',
-  },
-  cardRow: {
+  badgeText: { fontSize: 12, fontWeight: '600', color: '#fff' },
+  badgeActive: { backgroundColor: '#34d399' },
+  badgeCompleted: { backgroundColor: '#60a5fa' },
+  badgeCancelled: { backgroundColor: '#f97316' },
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  cardText: { fontSize: 15, color: '#222' },
+  cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  cardText: {
-    fontSize: 15,
-    color: '#222',
-  },
-  cardFooter: {
     borderTopWidth: 1,
     borderTopColor: '#eef6f0',
     paddingTop: 10,
   },
-  capacityText: {
-    fontSize: 14,
-    color: '#444',
-  },
+  capacityText: { fontSize: 14, color: '#444' },
 });

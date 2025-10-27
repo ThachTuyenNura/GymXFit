@@ -19,6 +19,9 @@ import UpdateProfileScreen from '@screens/profile/UpdateProfileScreen';
 import BookScreen from '@screens/booking/BookScreen';
 import CalendarScreen from '@screens/booking/CalendarScreen'
 import SearchCalendarScreen from '@screens/booking/SearchCalendarScreen';
+import NotificationScreen from '@screens/home/NotificationScreen';
+import SearchScreen from '@screens/home/SearchScreen';
+
 
 
 const Stack = createNativeStackNavigator();
@@ -26,7 +29,7 @@ const Stack = createNativeStackNavigator();
 const UserNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="SearchCalendarScreen"
+      initialRouteName="SearchScreen"
       screenOptions={{
         headerShown: false,
       }}
@@ -55,6 +58,8 @@ const UserNavigator = () => {
         name="SearchCalendarScreen"
         component={SearchCalendarScreen}
       />
+      <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
+      <Stack.Screen name="SearchScreen" component={SearchScreen} />
     </Stack.Navigator>
   );
 };

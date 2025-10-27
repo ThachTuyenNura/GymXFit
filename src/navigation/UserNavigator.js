@@ -24,12 +24,13 @@ import SearchScreen from '@screens/home/SearchScreen';
 
 
 
+
 const Stack = createNativeStackNavigator();
 
 const UserNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="WorkoutScreen2"
+      initialRouteName="MemberNewsScreen"
       screenOptions={{
         headerShown: false,
       }}
@@ -48,7 +49,6 @@ const UserNavigator = () => {
       />
       <Stack.Screen name="HelpCenterScreen" component={HelpCenterScreen} />
       <Stack.Screen name="HelpFaqScreen" component={HelpFaqScreen} />
-      <Stack.Screen name="NewsScreen" component={MemberNewsScreen} />
       <Stack.Screen
         name="OnlineSupportScreen"
         component={OnlineSupportScreen}
@@ -66,6 +66,7 @@ const UserNavigator = () => {
       />
       <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
       <Stack.Screen name="SearchScreen" component={SearchScreen} />
+      <Stack.Screen name="MemberNewsScreen" component={MemberNewsScreen}/>
     </Stack.Navigator>
   );
 };

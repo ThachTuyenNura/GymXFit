@@ -29,7 +29,7 @@ const Stack = createNativeStackNavigator();
 const UserNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="OnlineSupportScreen"
+      initialRouteName="WorkoutScreen2"
       screenOptions={{
         headerShown: false,
       }}
@@ -56,7 +56,7 @@ const UserNavigator = () => {
       <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} />
       <Stack.Screen name="WorkoutScreen" component={WorkoutScreen} />
       <Stack.Screen name="WorkoutScreen2" component={WorkoutScreen2} />
-      <Stack.Screen name="WorkoutVideo" component={WorkoutVideoScreen} />
+      <Stack.Screen name="WorkoutVideoScreen" component={WorkoutVideoScreen} />
       <Stack.Screen name="UpdateProfile" component={UpdateProfileScreen} />
       <Stack.Screen name="BookScreen" component={BookScreen} />
       <Stack.Screen name="CalendarScreen" component={CalendarScreen} />

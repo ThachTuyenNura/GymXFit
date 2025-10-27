@@ -26,11 +26,13 @@ const SurveyScreen = ({ navigation }) => {
   const [canNang, setCanNang] = useState('');
   const { refreshUser } = useContext(UserContext);
 
+  // 📅 Hàm chọn ngày
   const onChangeDate = (event, selectedDate) => {
     setShowPicker(false);
     if (selectedDate) setNgaySinh(selectedDate);
   };
 
+  // 📆 Định dạng ngày dd/mm/yyyy
   const formatDate = date => {
     return `${date.getDate().toString().padStart(2, '0')}/${(
       date.getMonth() + 1
@@ -39,76 +41,40 @@ const SurveyScreen = ({ navigation }) => {
       .padStart(2, '0')}/${date.getFullYear()}`;
   };
 
+  // ✅ Hàm gửi form
   const handleSubmit = async () => {
-    // 🔍 Kiểm tra tất cả trường bắt buộc
-    if (!ten.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập họ và tên.');
-      return;
-    }
+    if (!ten.trim()) return Alert.alert('Lỗi', 'Vui lòng nhập họ và tên.');
+    if (!ngaySinh) return Alert.alert('Lỗi', 'Vui lòng chọn ngày sinh.');
+    if (!gioiTinh) return Alert.alert('Lỗi', 'Vui lòng chọn giới tính.');
+    if (!email.trim()) return Alert.alert('Lỗi', 'Vui lòng nhập email.');
 
-    if (!ngaySinh) {
-      Alert.alert('Lỗi', 'Vui lòng chọn ngày sinh.');
-      return;
-    }
-
-    if (!gioiTinh) {
-      Alert.alert('Lỗi', 'Vui lòng chọn giới tính.');
-      return;
-    }
-
-    if (!email.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập email.');
-      return;
-    }
-
-    // Kiểm tra định dạng email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('Lỗi', 'Email không hợp lệ.');
-      return;
-    }
+    if (!emailRegex.test(email))
+      return Alert.alert('Lỗi', 'Email không hợp lệ.');
 
-    if (!chieuCao.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập chiều cao.');
-      return;
-    }
+    if (!chieuCao.trim()) return Alert.alert('Lỗi', 'Vui lòng nhập chiều cao.');
+    if (isNaN(chieuCao) || Number(chieuCao) <= 0)
+      return Alert.alert('Lỗi', 'Chiều cao phải là số hợp lệ.');
 
-    if (isNaN(chieuCao) || Number(chieuCao) <= 0) {
-      Alert.alert('Lỗi', 'Chiều cao phải là số hợp lệ (lớn hơn 0).');
-      return;
-    }
-
-    if (!canNang.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập cân nặng.');
-      return;
-    }
-
-    if (isNaN(canNang) || Number(canNang) <= 0) {
-      Alert.alert('Lỗi', 'Cân nặng phải là số hợp lệ (lớn hơn 0).');
-      return;
-    }
+    if (!canNang.trim()) return Alert.alert('Lỗi', 'Vui lòng nhập cân nặng.');
+    if (isNaN(canNang) || Number(canNang) <= 0)
+      return Alert.alert('Lỗi', 'Cân nặng phải là số hợp lệ.');
 
     try {
-      // Chuẩn bị dữ liệu để gửi đi
       const profileData = {
         name: ten,
-        dob: ngaySinh.toISOString(), // Gửi định dạng chuẩn ISO
-        email: email,
+        dob: ngaySinh.toISOString(),
+        email,
         gender: gioiTinh,
         height: Number(chieuCao),
-        weight: Number(canNang)
+        weight: Number(canNang),
       };
 
-      // Gọi API cập nhật
       await updateProfile(profileData);
-
-      // Báo cho Context biết để tải lại thông tin user
-      // Vì user mới đã có 'name', AppNavigation sẽ tự động chuyển sang HomeNavigation
       await refreshUser();
-
     } catch (error) {
-      Alert.alert('Lỗi', 'Không thể lưu thông tin. Vui lòng thử lại.');
       console.error(error);
+      Alert.alert('Lỗi', 'Không thể lưu thông tin. Vui lòng thử lại.');
     }
   };
 
@@ -121,24 +87,21 @@ const SurveyScreen = ({ navigation }) => {
       keyboardVerticalOffset={0}
     >
       <SafeAreaView>
+        {/* 🧩 Header */}
         <View style={styles.headerContainer}>
-          {/* Logo */}
           <Image
             source={require('@assets/images/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-
-          {/* Tiêu đề */}
           <Text style={styles.title}>Cập nhật thông tin</Text>
           <Text style={styles.subtitle}>
             Vui lòng điền thông tin cá nhân của bạn
           </Text>
         </View>
 
-        {/* Form */}
+        {/* 🧾 Form */}
         <View style={styles.form}>
-          {/* Họ tên */}
           <TextInput
             style={styles.input}
             placeholder="Họ và tên"
@@ -147,15 +110,21 @@ const SurveyScreen = ({ navigation }) => {
             onChangeText={setTen}
           />
 
-          {/* Ngày sinh */}
           <TouchableOpacity
             style={styles.input}
             onPress={() => setShowPicker(true)}
           >
-            <Text style={ngaySinh ? styles.dateSelectionText : styles.dateSelectionPlaceholder}>
+            <Text
+              style={
+                ngaySinh
+                  ? styles.dateSelectionText
+                  : styles.dateSelectionPlaceholder
+              }
+            >
               {ngaySinh ? formatDate(ngaySinh) : 'Ngày sinh'}
             </Text>
           </TouchableOpacity>
+
           {showPicker && (
             <DateTimePicker
               value={ngaySinh || new Date()}
@@ -165,56 +134,34 @@ const SurveyScreen = ({ navigation }) => {
             />
           )}
 
-          {/* Giới tính */}
+          {/* ⚧ Giới tính */}
           <Text style={styles.label}>Giới tính</Text>
           <View style={styles.genderContainer}>
-            <TouchableOpacity
-              style={styles.genderOption}
-              onPress={() => setGioiTinh('male')}
-            >
-              <View
-                style={[
-                  styles.radioOuter,
-                  gioiTinh === 'male' && styles.radioSelected,
-                ]}
+            {[
+              { key: 'male', label: 'Nam' },
+              { key: 'female', label: 'Nữ' },
+              { key: 'other', label: 'Khác' },
+            ].map(option => (
+              <TouchableOpacity
+                key={option.key}
+                style={styles.genderOption}
+                onPress={() => setGioiTinh(option.key)}
               >
-                {gioiTinh === 'male' && <View style={styles.radioInner} />}
-              </View>
-              <Text style={styles.genderText}>Nam</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.genderOption}
-              onPress={() => setGioiTinh('female')}
-            >
-              <View
-                style={[
-                  styles.radioOuter,
-                  gioiTinh === 'female' && styles.radioSelected,
-                ]}
-              >
-                {gioiTinh === 'female' && <View style={styles.radioInner} />}
-              </View>
-              <Text style={styles.genderText}>Nữ</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.genderOption}
-              onPress={() => setGioiTinh('other')}
-            >
-              <View
-                style={[
-                  styles.radioOuter,
-                  gioiTinh === 'other' && styles.radioSelected,
-                ]}
-              >
-                {gioiTinh === 'other' && <View style={styles.radioInner} />}
-              </View>
-              <Text style={styles.genderText}>Khác</Text>
-            </TouchableOpacity>
+                <View
+                  style={[
+                    styles.radioOuter,
+                    gioiTinh === option.key && styles.radioSelected,
+                  ]}
+                >
+                  {gioiTinh === option.key && (
+                    <View style={styles.radioInner} />
+                  )}
+                </View>
+                <Text style={styles.genderText}>{option.label}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
-          {/* Email */}
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -224,7 +171,6 @@ const SurveyScreen = ({ navigation }) => {
             onChangeText={setEmail}
           />
 
-          {/* Chiều cao */}
           <TextInput
             style={styles.input}
             placeholder="Chiều cao (cm)"
@@ -234,7 +180,6 @@ const SurveyScreen = ({ navigation }) => {
             onChangeText={setChieuCao}
           />
 
-          {/* Cân nặng */}
           <TextInput
             style={styles.input}
             placeholder="Cân nặng (kg)"
@@ -245,7 +190,7 @@ const SurveyScreen = ({ navigation }) => {
           />
         </View>
 
-        {/* Nút Gửi */}
+        {/* ✅ Nút xác nhận */}
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Xác nhận thông tin</Text>
         </TouchableOpacity>
@@ -254,15 +199,15 @@ const SurveyScreen = ({ navigation }) => {
   );
 };
 
-// Styles
+// 🎨 Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 35
+    padding: 35,
   },
   headerContainer: {
-    alignItems: 'center'
+    alignItems: 'center',
   },
   logo: {
     width: 180,

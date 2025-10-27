@@ -30,7 +30,7 @@ const Stack = createNativeStackNavigator();
 const UserNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="MemberNewsScreen"
+      initialRouteName="WorkoutScreen2"
       screenOptions={{
         headerShown: false,
       }}
@@ -66,7 +66,7 @@ const UserNavigator = () => {
       />
       <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
       <Stack.Screen name="SearchScreen" component={SearchScreen} />
-      <Stack.Screen name="MemberNewsScreen" component={MemberNewsScreen}/>
+      <Stack.Screen name="MemberNewsScreen" component={MemberNewsScreen} />
     </Stack.Navigator>
   );
 };

@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { getMyEnrollments } from '@api/classesApi';
 
+// ⚙️ Trạng thái buổi học
 const STATUS_META = {
   active: { label: 'Sắp diễn ra', style: 'badgeActive', icon: 'clock-outline' },
   completed: {
@@ -28,6 +29,22 @@ const STATUS_META = {
     icon: 'close-circle-outline',
   },
 };
+
+// 🔢 Tên tháng tiếng Việt
+const VI_MONTHS = [
+  'Tháng 1',
+  'Tháng 2',
+  'Tháng 3',
+  'Tháng 4',
+  'Tháng 5',
+  'Tháng 6',
+  'Tháng 7',
+  'Tháng 8',
+  'Tháng 9',
+  'Tháng 10',
+  'Tháng 11',
+  'Tháng 12',
+];
 
 const formatDateLabel = value => {
   try {
@@ -43,65 +60,66 @@ const formatDateLabel = value => {
 
 const formatTimeRange = (start, end) => {
   try {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const formatter = date =>
-      date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    return `${formatter(startDate)} - ${formatter(endDate)}`;
+    const s = new Date(start);
+    const e = new Date(end);
+    const f = d =>
+      d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    return `${f(s)} - ${f(e)}`;
   } catch {
     return '--:--';
   }
 };
 
+// 🧩 Thẻ lớp học
 const EnrollmentCard = ({ enrollment }) => {
   const classInfo = enrollment.class || {};
   const statusMeta = STATUS_META[enrollment.status] || STATUS_META.active;
 
   return (
-    <View style={styles.enrollmentCard}>
+    <View style={styles.classCard}>
       <View style={styles.cardHeader}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View style={styles.rowCenter}>
           <Icon name="dumbbell" size={22} color="#30C451" />
-          <Text style={styles.className}>
+          <Text style={styles.classTitle}>
             {classInfo.name || 'Lớp học GymXFit'}
           </Text>
         </View>
-        <View style={[styles.badge, styles[statusMeta.style]]}>
+        <View style={[styles.statusBadge, styles[statusMeta.style]]}>
           <Icon name={statusMeta.icon} size={14} color="#fff" />
-          <Text style={styles.badgeText}>{statusMeta.label}</Text>
+          <Text style={styles.statusText}>{statusMeta.label}</Text>
         </View>
       </View>
 
       <View style={styles.cardRow}>
-        <Icon name="calendar-month" size={20} color="#30C451" />
+        <Icon name="calendar-month" size={18} color="#30C451" />
         <Text style={styles.cardText}>
-          {formatDateLabel(classInfo.startTime || enrollment.enrolledAt)}
+          {formatDateLabel(classInfo.startTime)}
         </Text>
       </View>
 
       <View style={styles.cardRow}>
-        <Icon name="clock-outline" size={20} color="#30C451" />
+        <Icon name="clock-outline" size={18} color="#30C451" />
         <Text style={styles.cardText}>
           {formatTimeRange(classInfo.startTime, classInfo.endTime)}
         </Text>
       </View>
 
-      {classInfo.location ? (
+      {classInfo.location && (
         <View style={styles.cardRow}>
-          <Icon name="map-marker-outline" size={20} color="#30C451" />
+          <Icon name="map-marker-outline" size={18} color="#30C451" />
           <Text style={styles.cardText}>{classInfo.location}</Text>
         </View>
-      ) : null}
+      )}
 
-      {classInfo.instructor?.name ? (
+      {classInfo.instructor?.name && (
         <View style={styles.cardRow}>
-          <Icon name="account-outline" size={20} color="#30C451" />
-          <Text style={styles.cardText}>{classInfo.instructor.name}</Text>
+          <Icon name="account-outline" size={18} color="#30C451" />
+          <Text style={styles.cardText}>HLV: {classInfo.instructor.name}</Text>
         </View>
-      ) : null}
+      )}
 
       <View style={styles.cardFooter}>
-        <Icon name="account-group" size={18} color="#30C451" />
+        <Icon name="account-group" size={16} color="#30C451" />
         <Text style={styles.capacityText}>
           {'  '}
           {classInfo.currentEnrollment}/{classInfo.capacity} học viên
@@ -114,33 +132,31 @@ const EnrollmentCard = ({ enrollment }) => {
 const CalendarScreen = ({ navigation }) => {
   const [enrollments, setEnrollments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [error, setError] = useState(null);
 
-  const loadEnrollments = useCallback(async (isRefreshing = false) => {
-    if (isRefreshing) setRefreshing(true);
-    else setIsLoading(true);
-    setError(null);
-
+  const loadEnrollments = useCallback(async (refresh = false) => {
     try {
+      if (refresh) setRefreshing(true);
+      else setIsLoading(true);
+
       const response = await getMyEnrollments({ limit: 100 });
       if (response?.success) {
-        const sortedEnrollments = [...(response.data || [])].sort((a, b) => {
-          const startA = new Date(a.class?.startTime || a.enrolledAt).getTime();
-          const startB = new Date(b.class?.startTime || b.enrolledAt).getTime();
-          return startA - startB;
+        const sorted = [...(response.data || [])].sort((a, b) => {
+          return new Date(a.class?.startTime) - new Date(b.class?.startTime);
         });
-        setEnrollments(sortedEnrollments);
+        setEnrollments(sorted);
       } else {
+        setError(response?.message || 'Không thể tải dữ liệu.');
         setEnrollments([]);
-        setError(response?.message || 'Không thể tải lịch học.');
       }
     } catch (err) {
-      setEnrollments([]);
       setError(err.message);
+      setEnrollments([]);
     } finally {
-      if (isRefreshing) setRefreshing(false);
-      else setIsLoading(false);
+      setIsLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
@@ -149,49 +165,37 @@ const CalendarScreen = ({ navigation }) => {
       loadEnrollments(false);
     }, [loadEnrollments]),
   );
+  const handleRefresh = () => loadEnrollments(true);
 
-  const handleRefresh = useCallback(
-    () => loadEnrollments(true),
-    [loadEnrollments],
-  );
-
-  const upcomingEnrollments = useMemo(() => {
-    const now = Date.now();
+  // 🔹 Lọc lịch theo tháng
+  const filtered = useMemo(() => {
     return enrollments.filter(item => {
-      const startTime = new Date(
-        item.class?.startTime || item.enrolledAt,
-      ).getTime();
-      return startTime >= now || item.status === 'active';
+      const d = new Date(item.class?.startTime);
+      return d.getMonth() === selectedMonth;
     });
-  }, [enrollments]);
+  }, [enrollments, selectedMonth]);
 
-  const pastEnrollments = useMemo(() => {
-    const now = Date.now();
-    return enrollments.filter(item => {
-      const startTime = new Date(
-        item.class?.startTime || item.enrolledAt,
-      ).getTime();
-      return startTime < now && item.status !== 'active';
-    });
-  }, [enrollments]);
+  const monthName = VI_MONTHS[selectedMonth];
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#30C451" barStyle="light-content" />
+      <StatusBar hidden={true} />
 
+      {/* 🔹 Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.backButton}
           onPress={() => navigation.goBack()}
+          style={styles.headerLeft}
         >
-          <Icon name="arrow-left" size={24} color="white" />
+          <Icon name="arrow-left" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Lịch học của bạn</Text>
+        <Text style={styles.headerTitle}>Lịch tập luyện theo năm</Text>
         <View style={styles.headerRight} />
       </View>
 
+      {/* 🔹 Nội dung */}
       <ScrollView
-        style={styles.scrollContainer}
+        style={styles.scrollView}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -200,23 +204,56 @@ const CalendarScreen = ({ navigation }) => {
           />
         }
       >
-        <View style={styles.heroSection}>
+        {/* Banner */}
+        <View style={styles.bannerContainer}>
           <Image
             source={require('@assets/images/headercalender.png')}
-            style={styles.heroImage}
+            style={styles.bannerImage}
             resizeMode="cover"
           />
-          <View style={styles.heroOverlay}>
-            <Text style={styles.heroTitle}>Theo dõi tiến trình tập luyện</Text>
-            <Text style={styles.heroSubtitle}>
-              Lịch học được đồng bộ với hệ thống giúp bạn chủ động thời gian
-              tập.
+          <View style={styles.bannerOverlay}>
+            <Text style={styles.bannerTitle}>
+              Theo dõi lịch tập luyện trong năm
+            </Text>
+            <Text style={styles.bannerSubtitle}>
+              Chọn tháng để xem chi tiết lịch học.
             </Text>
           </View>
         </View>
 
+        {/* Tháng */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.monthScroll}
+        >
+          {VI_MONTHS.map((m, i) => (
+            <TouchableOpacity
+              key={i}
+              onPress={() => setSelectedMonth(i)}
+              style={[
+                styles.monthButton,
+                selectedMonth === i && styles.monthButtonActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.monthText,
+                  selectedMonth === i && styles.monthTextActive,
+                ]}
+              >
+                {m}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Danh sách lớp */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Lịch sắp tới</Text>
+          <Text style={styles.sectionTitle}>
+            {monthName} ({filtered.length})
+          </Text>
+
           {isLoading ? (
             <View style={styles.stateContainer}>
               <ActivityIndicator size="large" color="#30C451" />
@@ -226,36 +263,15 @@ const CalendarScreen = ({ navigation }) => {
             <View style={styles.stateContainer}>
               <Text style={styles.stateText}>{error}</Text>
             </View>
-          ) : upcomingEnrollments.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <View style={styles.stateContainer}>
-              <Icon name="calendar-remove-outline" size={28} color="#ccc" />
+              <Icon name="calendar-remove-outline" size={28} color="#bbb" />
               <Text style={styles.stateText}>
-                Bạn chưa có lịch học nào sắp diễn ra. Đặt lịch trong mục Đặt
-                lịch nhé!
+                Không có buổi học nào trong {monthName}.
               </Text>
             </View>
           ) : (
-            upcomingEnrollments.map(item => (
-              <EnrollmentCard key={item.enrollmentId} enrollment={item} />
-            ))
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Lịch đã tham gia</Text>
-          {isLoading ? (
-            <View style={styles.stateContainer}>
-              <ActivityIndicator size="large" color="#30C451" />
-            </View>
-          ) : pastEnrollments.length === 0 ? (
-            <View style={styles.stateContainer}>
-              <Icon name="calendar-check-outline" size={28} color="#ccc" />
-              <Text style={styles.stateText}>
-                Bạn sẽ thấy lịch đã học tại đây.
-              </Text>
-            </View>
-          ) : (
-            pastEnrollments.map(item => (
+            filtered.map(item => (
               <EnrollmentCard key={item.enrollmentId} enrollment={item} />
             ))
           )}
@@ -268,94 +284,101 @@ const CalendarScreen = ({ navigation }) => {
 export default CalendarScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#F7F8FA' },
   header: {
     backgroundColor: '#30C451',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    justifyContent: 'space-between',
   },
-  backButton: { width: 40, alignItems: 'flex-start' },
-  headerTitle: { color: 'white', fontSize: 18, fontWeight: '700' },
-  headerRight: { width: 40 },
-  scrollContainer: { flex: 1 },
-  heroSection: {
+  headerLeft: { padding: 4 },
+  headerRight: { width: 24 },
+  headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  scrollView: { flex: 1 },
+  bannerContainer: {
     margin: 16,
-    marginBottom: 0,
-    borderRadius: 20,
+    borderRadius: 16,
     overflow: 'hidden',
-    position: 'relative',
   },
-  heroImage: { width: '100%', height: 180 },
-  heroOverlay: {
+  bannerImage: { width: '100%', height: 180 },
+  bannerOverlay: {
     position: 'absolute',
     inset: 0,
     backgroundColor: 'rgba(0,0,0,0.25)',
     padding: 16,
     justifyContent: 'flex-end',
   },
-  heroTitle: { color: '#fff', fontSize: 20, fontWeight: '700' },
-  heroSubtitle: {
-    marginTop: 6,
-    color: '#f8f8f8',
-    fontSize: 14,
-    lineHeight: 20,
+  bannerTitle: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  bannerSubtitle: { color: '#f0f0f0', fontSize: 14, marginTop: 6 },
+  monthScroll: { paddingHorizontal: 16, marginTop: 12 },
+  monthButton: {
+    backgroundColor: '#E7F8EC',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
   },
-  section: { marginTop: 20, paddingHorizontal: 16, gap: 12 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#102615' },
+  monthButtonActive: { backgroundColor: '#30C451' },
+  monthText: { color: '#30C451', fontWeight: '500' },
+  monthTextActive: { color: '#fff' },
+  section: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 40 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#102615',
+    marginBottom: 10,
+  },
   stateContainer: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    marginTop: 10,
   },
-  stateText: {
-    fontSize: 15,
-    color: '#555',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  enrollmentCard: {
+  stateText: { fontSize: 15, color: '#555', textAlign: 'center', marginTop: 6 },
+  classCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 18,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
+    padding: 16,
+    marginBottom: 16,
     elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  className: { fontSize: 18, fontWeight: '700', color: '#111' },
-  badge: {
+  classTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#102615',
+    marginLeft: 6,
+  },
+  statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
   },
-  badgeText: { fontSize: 12, fontWeight: '600', color: '#fff' },
+  statusText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   badgeActive: { backgroundColor: '#34d399' },
   badgeCompleted: { backgroundColor: '#60a5fa' },
   badgeCancelled: { backgroundColor: '#f97316' },
-  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cardText: { fontSize: 15, color: '#222' },
+  cardRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 2 },
+  cardText: { fontSize: 14, color: '#333', marginLeft: 8 },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#eef6f0',
-    paddingTop: 10,
+    paddingTop: 8,
+    marginTop: 6,
   },
-  capacityText: { fontSize: 14, color: '#444' },
+  capacityText: { fontSize: 13, color: '#555' },
+  rowCenter: { flexDirection: 'row', alignItems: 'center' },
 });

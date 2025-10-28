@@ -30,7 +30,7 @@ const Stack = createNativeStackNavigator();
 const UserNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="BookScreen"
+      initialRouteName="SearchCalendarScreen"
       screenOptions={{
         headerShown: false,
       }}

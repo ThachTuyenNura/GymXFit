@@ -32,12 +32,15 @@ import PTLessonPlanScreen from '@screens/PT/PTLessonPlanScreen';
 import PTLessonHistoryScreen from '@screens/PT/PTLessonHistoryScreen';
 import PTProfileScreen from '@screens/PT/PTProfileScreen';
 
+// 🟩 Màn hình cập nhật hồ sơ PT mới thêm
+import UpdatePTProfileScreen from '@screens/PT/UpdatePTProfileScreen';
+
 const Stack = createNativeStackNavigator();
 
 const UserNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="HomePTScreen"
+      initialRouteName="PTProfileScreen"
       screenOptions={{
         headerShown: false,
       }}
@@ -90,6 +93,10 @@ const UserNavigator = () => {
         component={PTLessonHistoryScreen}
       />
       <Stack.Screen name="PTProfileScreen" component={PTProfileScreen} />
+      <Stack.Screen
+        name="UpdatePTProfileScreen"
+        component={UpdatePTProfileScreen}
+      />
     </Stack.Navigator>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+// 🟩 Các màn hình có sẵn
 import CustomerServiceScreen from '@screens/support/CustomerServiceScreen';
 import HelpCenterScreen from '@screens/support/HelpCenterScreen';
 import HelpFaqScreen from '@screens/support/HelpFaqScreen';
@@ -17,24 +18,31 @@ import WorkoutScreen2 from '@screens/workouts/WorkoutScreen2';
 import WorkoutVideoScreen from '@screens/video/WorkoutVideoScreen';
 import UpdateProfileScreen from '@screens/profile/UpdateProfileScreen';
 import BookScreen from '@screens/booking/BookScreen';
-import CalendarScreen from '@screens/booking/CalendarScreen'
+import CalendarScreen from '@screens/booking/CalendarScreen';
 import SearchCalendarScreen from '@screens/booking/SearchCalendarScreen';
 import NotificationScreen from '@screens/home/NotificationScreen';
 import SearchScreen from '@screens/home/SearchScreen';
+import LoginPTScreen from '@screens/PT/LoginPTScreen';
 
-
-
+// 🟩 Các màn hình PT mới
+import HomePTScreen from '@screens/PT/HomePTScreen';
+import PTScheduleScreen from '@screens/PT/PTScheduleScreen';
+import PTCustomerListScreen from '@screens/PT/PTCustomerListScreen';
+import PTLessonPlanScreen from '@screens/PT/PTLessonPlanScreen';
+import PTLessonHistoryScreen from '@screens/PT/PTLessonHistoryScreen';
+import PTProfileScreen from '@screens/PT/PTProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
 const UserNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="SearchCalendarScreen"
+      initialRouteName="HomePTScreen"
       screenOptions={{
         headerShown: false,
       }}
     >
+      {/* 🟩 Màn hình user */}
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
       <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
       <Stack.Screen
@@ -67,6 +75,21 @@ const UserNavigator = () => {
       <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
       <Stack.Screen name="SearchScreen" component={SearchScreen} />
       <Stack.Screen name="MemberNewsScreen" component={MemberNewsScreen} />
+
+      {/* 🟩 Màn hình PT */}
+      <Stack.Screen name="LoginPTScreen" component={LoginPTScreen} />
+      <Stack.Screen name="HomePTScreen" component={HomePTScreen} />
+      <Stack.Screen name="PTScheduleScreen" component={PTScheduleScreen} />
+      <Stack.Screen
+        name="PTCustomerListScreen"
+        component={PTCustomerListScreen}
+      />
+      <Stack.Screen name="PTLessonPlanScreen" component={PTLessonPlanScreen} />
+      <Stack.Screen
+        name="PTLessonHistoryScreen"
+        component={PTLessonHistoryScreen}
+      />
+      <Stack.Screen name="PTProfileScreen" component={PTProfileScreen} />
     </Stack.Navigator>
   );
 };
